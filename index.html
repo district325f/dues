@@ -5,28 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lions Club Dues Tracking System</title>
     <style>
-        /* युनिभर्सल र प्रिमियम फन्ट सेटिङ */
+        /* युनिभर्सल र प्रिमियम फन्ट तथा ब्याकग्राउन्ड */
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 10px 20px; background-color: #f5f7fa; color: #2c3e50; }
         .container { max-width: 960px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
         
-        /* टप बार लेआउट र ग्याप नियन्त्रण */
+        /* टप बार लेआउट र स्पेसिङ */
         .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0px; padding-bottom: 5px; }
         
-        /* लोगो साइज र सफा सेतो ब्याकग्राउन्ड बक्स */
-        .logo-box { background-color: white; padding: 2px; display: flex; align-items: center; justify-content: center; }
+        /* लोगो बक्स - गिटहबको logo.png को लागि */
+        .logo-box { background-color: white; display: flex; align-items: center; justify-content: center; }
         .logo-box img { width: 100px; height: auto; display: block; }
         
         /* युनिभर्सल एड्मिन लगइन बटन */
         .admin-login-btn { background-color: #ffffff; border: 1px solid #dcdde1; padding: 8px 16px; font-size: 14px; font-weight: 600; color: #2f3640; cursor: pointer; border-radius: 30px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); transition: all 0.2s ease; }
         .admin-login-btn:hover { background-color: #f8f9fa; border-color: #b2bec3; transform: translateY(-1px); }
 
-        /* हेडर टेक्स्ट र आधिकारिक रङ्गहरूको संयोजन */
+        /* हेडर शीर्षकहरू - रयल नेभी ब्लु र गोल्डेन एम्बरको संयोजन */
         .main-titles { text-align: center; margin-top: -15px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e1e8ed; }
         .main-titles h1 { margin: 0; font-size: 38px; color: #003366; font-weight: 800; letter-spacing: -0.5px; }
         .main-titles h2 { margin: 4px 0; font-size: 24px; color: #003366; font-weight: 700; }
         .main-titles h3 { margin: 8px 0 0 0; font-size: 26px; color: #D4AF37; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
         
-        /* आधुनिक सर्च बक्स */
+        /* आधुनिक क्युब इनपुट बक्स */
         .search-container { margin: 20px 0; padding: 15px 20px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e1e8ed; }
         .search-container label { font-size: 14px; color: #4f5d75; display: block; margin-bottom: 6px; }
         input, select, button { padding: 12px; font-size: 15px; margin: 5px 0; width: 100%; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; }
@@ -35,7 +35,7 @@
         button.primary-btn { background-color: #003366; color: white; border: none; cursor: pointer; font-weight: 600; transition: background 0.2s; }
         button.primary-btn:hover { background-color: #002244; }
         
-        /* प्रिमियम टेबल संरचना र कलरिङ */
+        /* प्रिमियम क्युब तालिका (Table Structure) */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #e1e8ed; }
         th { background-color: #003366; color: white; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -63,7 +63,7 @@
 <div class="container">
     <div class="top-bar">
         <div class="logo-box">
-            <img id="lionsLogo" src="data:image/png;base64,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" alt="Lions International Logo">
+            <img id="lionsLogo" src="logo.png" alt="Lions International Logo" onerror="this.src='https://via.placeholder.com/100?text=Lions+Logo'">
         </div>
         <div>
             <button class="admin-login-btn" onclick="openAdminModal()">🔒 Admin Login</button>
@@ -131,7 +131,7 @@
             <h4 style="color:#e74c3c; font-size: 17px; margin: 10px 0;">कुल तिर्नुपर्ने रकम: रु. <span id="payAmountText">0</span></h4>
             
             <div style="text-align:center; margin: 15px 0; background: #f8f9fa; padding: 10px; border-radius: 6px;">
-                <img src="https://via.placeholder.com/250?text=Your+QR+Code+Here" style="max-width:180px; border:1px solid #ddd; border-radius: 4px;">
+                <img src="qr.jpg" alt="Payment QR Code" style="max-width:180px; border:1px solid #ddd; border-radius: 4px;" onerror="this.src='https://via.placeholder.com/250?text=QR+Not+Found'">
             </div>
 
             <label style="font-size: 14px; font-weight: 600; color: #2c3e50;">१. भुक्तानी गरेको बैंक रसिद वा स्क्रिनसट अपलोड गर्नुहोस् (भौचर फोटो):</label>
