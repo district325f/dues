@@ -449,7 +449,8 @@ async function submitUserPayment() {
           `*नाम:* \n*सम्पर्क:* \n\n` +
           `विवरण चेक गरी कृपया सिस्टममा अपडेट गरिदिनुहोला ।`;
 
-        window.open(`https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(waMessage)}`, "_blank");
+        const waUrl = `https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(waMessage)}`;
+        openWhatsAppReliable(waUrl);
       } else {
         alert(result.message || "Upload failed भयो।");
       }
@@ -497,7 +498,7 @@ async function checkAdminLogin() {
     if (result.status === "success") {
       document.getElementById("adminDashboard").style.display = "block";
       document.getElementById("loginBox").style.display = "none";
-      alert("एड्मिन लगइन सफल भयो।");
+      alert(result.message || "एड्मिन लगइन सफल भयो।");
     } else {
       alert(result.message || "Login failed.");
     }
@@ -587,7 +588,8 @@ async function submitAdminUpdate() {
       if (newIntlStatus !== oldIntlStatus || newDistrictStatus !== oldDistrictStatus) {
         if (targetPhone) {
           const updateMsg = `तपाईँको क्लब *${cName}* को Dues सिस्टममा अपडेट भयो । धन्यवाद !`;
-          window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(updateMsg)}`, "_blank");
+          const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(updateMsg)}`;
+          openWhatsAppReliable(waUrl);
         }
       }
     } else {
@@ -613,7 +615,15 @@ function sendAdminDuesReminder() {
     `महत्वपूर्ण सूचना:\n` +
     `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ । कृपया वित्तीय विवरण पोर्टलमा चेक गरी समयमै भुक्तानी गरिदिनुहोला । धन्यवाद !`;
 
-  window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(reminderMsg)}`, "_blank");
+  const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(reminderMsg)}`;
+  openWhatsAppReliable(waUrl);
+}
+
+function openWhatsAppReliable(waUrl) {
+  // Mobile/browser popup block रोक्न same page redirect प्रयोग गरिन्छ
+  setTimeout(function() {
+    window.location.href = waUrl;
+  }, 300);
 }
 
 window.onload = loadData;
