@@ -449,7 +449,7 @@ async function submitUserPayment() {
           `*नाम:* \n*सम्पर्क:* \n\n` +
           `विवरण चेक गरी कृपया सिस्टममा अपडेट गरिदिनुहोला ।`;
 
-        const waUrl = `https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(waMessage)}`;
+        const waUrl = buildWhatsAppUrl(waNumber, waMessage);
         openWhatsAppReliable(waUrl);
       } else {
         alert(result.message || "Upload failed भयो।");
@@ -588,7 +588,7 @@ async function submitAdminUpdate() {
       if (newIntlStatus !== oldIntlStatus || newDistrictStatus !== oldDistrictStatus) {
         if (targetPhone) {
           const updateMsg = `तपाईँको क्लब *${cName}* को Dues सिस्टममा अपडेट भयो । धन्यवाद !`;
-          const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(updateMsg)}`;
+          const waUrl = buildWhatsAppUrl(targetPhone, updateMsg);
           openWhatsAppReliable(waUrl);
         }
       }
@@ -615,15 +615,31 @@ function sendAdminDuesReminder() {
     `महत्वपूर्ण सूचना:\n` +
     `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ । कृपया वित्तीय विवरण पोर्टलमा चेक गरी समयमै भुक्तानी गरिदिनुहोला । धन्यवाद !`;
 
-  const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(reminderMsg)}`;
+  const waUrl = buildWhatsAppUrl(targetPhone, reminderMsg);
   openWhatsAppReliable(waUrl);
 }
 
+function buildWhatsAppUrl(phone, message) {
+  const cleanPhone = String(phone || "").replace(/[^0-9]/g, "");
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+}
+
 function openWhatsAppReliable(waUrl) {
-  // Mobile/browser popup block रोक्न same page redirect प्रयोग गरिन्छ
+  // GitHub, mobile browser र Apps Script iframe सबैमा चलाउन anchor + _top fallback प्रयोग गरिएको छ
+  const a = document.createElement("a");
+  a.href = waUrl;
+  a.target = "_top";
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+
   setTimeout(function() {
-    window.location.href = waUrl;
-  }, 300);
+    try {
+      window.top.location.href = waUrl;
+    } catch (e) {
+      window.location.href = waUrl;
+    }
+  }, 200);
 }
 
 window.onload = loadData;
