@@ -5,51 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lions Club Dues Tracking System</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; color: #333; }
-        .container { max-width: 950px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        /* युनिभर्सल र प्रिमियम फन्ट सेटिङ */
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 10px 20px; background-color: #f5f7fa; color: #2c3e50; }
+        .container { max-width: 960px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
         
-        /* नयाँ लेआउट: लोगो र एड्मिन लगइन सबैभन्दा माथिको लाइनमा */
-        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        /* टप बार लेआउट र ग्याप नियन्त्रण */
+        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0px; padding-bottom: 5px; }
         
-        /* लोगो बक्स - सेतो ब्याकग्राउन्ड फिक्स */
-        .logo-box { background-color: white; padding: 5px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        .logo-box img { width: 110px; height: auto; display: block; }
+        /* लोगो साइज र सफा सेतो ब्याकग्राउन्ड बक्स */
+        .logo-box { background-color: white; padding: 2px; display: flex; align-items: center; justify-content: center; }
+        .logo-box img { width: 100px; height: auto; display: block; }
         
-        /* एड्मिन लगइन बटन ताल्चा सहित */
-        .admin-login-btn { background-color: #eef2f7; border: 1px solid #ccc; padding: 8px 15px; font-size: 15px; font-weight: bold; color: #333; cursor: pointer; border-radius: 20px; display: flex; align-items: center; gap: 8px; width: auto; transition: background 0.2s; }
-        .admin-login-btn:hover { background-color: #ddd; }
+        /* युनिभर्सल एड्मिन लगइन बटन */
+        .admin-login-btn { background-color: #ffffff; border: 1px solid #dcdde1; padding: 8px 16px; font-size: 14px; font-weight: 600; color: #2f3640; cursor: pointer; border-radius: 30px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); transition: all 0.2s ease; }
+        .admin-login-btn:hover { background-color: #f8f9fa; border-color: #b2bec3; transform: translateY(-1px); }
 
-        /* बीचमा आउने ठूला मुख्य शीर्षकहरू */
-        .main-titles { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #eee; }
-        .main-titles h1 { margin: 0; font-size: 42px; color: #003366; font-weight: bold; letter-spacing: 0.5px; }
-        .main-titles h2 { margin: 5px 0; font-size: 26px; color: #444; font-weight: bold; }
-        .main-titles h3 { margin: 5px 0 0 0; font-size: 22px; color: #666; font-weight: normal; text-transform: uppercase; }
+        /* हेडर टेक्स्ट र आधिकारिक रङ्गहरूको संयोजन */
+        .main-titles { text-align: center; margin-top: -15px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e1e8ed; }
+        .main-titles h1 { margin: 0; font-size: 38px; color: #003366; font-weight: 800; letter-spacing: -0.5px; }
+        .main-titles h2 { margin: 4px 0; font-size: 24px; color: #003366; font-weight: 700; }
+        .main-titles h3 { margin: 8px 0 0 0; font-size: 26px; color: #D4AF37; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
         
-        .search-container { margin: 20px 0; padding: 15px; background: #eef2f7; border-radius: 5px; }
-        input, select, button { padding: 10px; font-size: 16px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-        button.primary-btn { background-color: #003366; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        /* आधुनिक सर्च बक्स */
+        .search-container { margin: 20px 0; padding: 15px 20px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e1e8ed; }
+        .search-container label { font-size: 14px; color: #4f5d75; display: block; margin-bottom: 6px; }
+        input, select, button { padding: 12px; font-size: 15px; margin: 5px 0; width: 100%; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; }
+        input:focus, select:focus { border-color: #003366; outline: none; box-shadow: 0 0 0 3px rgba(0,51,102,0.1); }
+        
+        button.primary-btn { background-color: #003366; color: white; border: none; cursor: pointer; font-weight: 600; transition: background 0.2s; }
         button.primary-btn:hover { background-color: #002244; }
         
-        /* ओरिजिनल निलो टेबल डिजाइन */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #003366; color: white; font-size: 16px; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        tr:hover { background-color: #f1f1f1; cursor: pointer; }
+        /* प्रिमियम टेबल संरचना र कलरिङ */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #e1e8ed; }
+        th { background-color: #003366; color: white; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: #edf2f7; cursor: pointer; }
         
-        /* रातो, हरियो र पहेंलो रङ्गका स्टाटस ब्याजहरू */
-        .badge { padding: 6px 12px; border-radius: 4px; font-weight: bold; color: white; font-size: 14px; text-align: center; display: inline-block; min-width: 80px; }
-        .badge-paid { background-color: #28a745; }
-        .badge-unpaid { background-color: #dc3545; }
-        .badge-pending { background-color: #ffc107; color: #333; }
+        /* स्ट्यान्डर्ड स्टाटस ब्याजहरू */
+        .badge { padding: 6px 14px; border-radius: 4px; font-weight: 700; color: white; font-size: 13px; text-align: center; display: inline-block; min-width: 90px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .badge-paid { background-color: #2ecc71; }
+        .badge-unpaid { background-color: #e74c3c; }
+        .badge-pending { background-color: #f1c40f; color: #2c3e50; }
         
         /* मोडल पप-अप विन्डोज */
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); overflow: auto; }
-        .modal-content { background-color: white; margin: 8% auto; padding: 25px; border-radius: 8px; width: 90%; max-width: 550px; position: relative; }
-        .close { position: absolute; right: 20px; top: 10px; font-size: 28px; cursor: pointer; color: #aaa; }
-        .close:hover { color: #333; }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); overflow: auto; }
+        .modal-content { background-color: white; margin: 6% auto; padding: 30px; border-radius: 10px; width: 90%; max-width: 550px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .close { position: absolute; right: 20px; top: 15px; font-size: 26px; cursor: pointer; color: #b2bec3; transition: color 0.2s; }
+        .close:hover { color: #2f3640; }
         
-        .admin-dashboard-view { display: none; margin-top: 20px; padding: 15px; background: #fffdf0; border: 2px dashed #003366; border-radius: 8px; }
+        .admin-dashboard-view { display: none; margin-top: 20px; padding: 20px; background: #fffdf3; border: 2px dashed #D4AF37; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -57,7 +63,7 @@
 <div class="container">
     <div class="top-bar">
         <div class="logo-box">
-            <img id="lionsLogo" src="data:image/png;base64,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" alt="Lions International Logo">
+            <img id="lionsLogo" src="data:image/png;base64,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" alt="Lions International Logo">
         </div>
         <div>
             <button class="admin-login-btn" onclick="openAdminModal()">🔒 Admin Login</button>
@@ -93,48 +99,48 @@
 <div id="rateModal" class="modal">
     <div class="modal-content" style="max-width: 400px; text-align: center;">
         <span class="close" onclick="closeRateModal()">&times;</span>
-        <h3 style="color:#003366; margin-bottom:15px;">Exchange Rate Required</h3>
-        <p>कृपया यस महिनाको लायन्स एक्सचेन्ज रेट ($1 = NPR) राख्नुहोस्:</p>
-        <input type="number" id="tempDollarRate" value="135" style="text-align: center; font-size: 20px; font-weight: bold; color: #dc3545;">
-        <button class="primary-btn" style="margin-top:15px;" onclick="saveRateAndProceed()">अघि बढ्नुहोस् (Proceed)</button>
+        <h3 style="color:#003366; margin-bottom:15px; font-weight: 700;">Exchange Rate Required</h3>
+        <p style="font-size: 14px; color: #4f5d75;">कृपया यस महिनाको लायन्स एक्सचेन्ज रेट ($1 = NPR) राख्नुहोस्:</p>
+        <input type="number" id="tempDollarRate" value="135" style="text-align: center; font-size: 24px; font-weight: bold; color: #e74c3c; border-radius: 6px;">
+        <button class="primary-btn" style="margin-top:15px; padding: 12px;" onclick="saveRateAndProceed()">अघि बढ्नुहोस् (Proceed)</button>
     </div>
 </div>
 
 <div id="detailsModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeDetailsModal()">&times;</span>
-        <h2 id="mClubName" style="color:#003366; margin-top:0;">Club Details</h2>
-        <p><b>Lion ID:</b> <span id="mLionId"></span> | <b>Type:</b> <span id="mClubType"></span></p>
-        <p><b>Active Members:</b> <span id="mActiveCount"></span> | <b>New Members:</b> <span id="mNewCount"></span></p>
+        <h2 id="mClubName" style="color:#003366; margin-top:0; font-weight: 700;">Club Details</h2>
+        <p style="font-size: 14px; color: #555;"><b>Lion ID:</b> <span id="mLionId"></span> | <b>Type:</b> <span id="mClubType"></span></p>
+        <p style="font-size: 14px; color: #555;"><b>Active Members:</b> <span id="mActiveCount"></span> | <b>New Members:</b> <span id="mNewCount"></span></p>
         
-        <fieldset style="border: 1px solid #003366; padding: 15px; border-radius: 5px; background: #fdfdfd;">
-            <legend><b>Dues Breakdown (NPR)</b></legend>
-            <p>International Dues: $<span id="mIntlUsd"></span> × <span id="mCurrentRate"></span> = <b>रु. <span id="mIntlNpr"></span></b> (<span id="mIntlStatus"></span>)</p>
-            <p>District Dues (<span id="mDistrictCalc"></span> × 1265): <b>रु. <span id="mDistrictNpr"></span></b> (<span id="mDistrictStatus"></span>)</p>
-            <p>New Member Entrance (<span id="mNewCalc"></span> × 100): <b>रु. <span id="mNewNpr"></span></b></p>
-            <hr style="border: 0; border-top: 1px solid #ddd;">
-            <h3 style="margin: 10px 0 0 0; text-align:left;">Total Due Amount: रु. <span id="mTotalNpr"></span></h3>
+        <fieldset style="border: 1px solid #e1e8ed; padding: 15px 20px; border-radius: 8px; background: #fafbfc; margin-top: 15px;">
+            <legend style="color: #003366; font-weight: 600; padding: 0 5px;">Dues Breakdown (NPR)</legend>
+            <p style="font-size: 14.5px;">International Dues: $<span id="mIntlUsd"></span> × <span id="mCurrentRate"></span> = <b>रु. <span id="mIntlNpr"></span></b> (<span id="mIntlStatus"></span>)</p>
+            <p style="font-size: 14.5px;">District Dues (<span id="mDistrictCalc"></span> × 1265): <b>रु. <span id="mDistrictNpr"></span></b> (<span id="mDistrictStatus"></span>)</p>
+            <p style="font-size: 14.5px;">New Member Entrance (<span id="mNewCalc"></span> × 100): <b>रु. <span id="mNewNpr"></span></b></p>
+            <hr style="border: 0; border-top: 1px solid #e1e8ed; margin: 12px 0;">
+            <h3 style="margin: 5px 0 0 0; text-align:left; color: #2c3e50; font-size: 18px;">Total Due Amount: रु. <span id="mTotalNpr"></span></h3>
         </fieldset>
 
-        <div id="paymentSection" style="margin-top: 15px;">
-            <h3>Pay Online (QR Code)</h3>
-            <p style="font-size:14px; margin-bottom:5px;">कुन शीर्षकको रकम तिर्न लाग्नुभएको हो टिक लगाउनुहोस्:</p>
-            <label><input type="checkbox" id="chkIntl" checked onchange="recalcTotalToPay()"> International Dues</label><br>
-            <label><input type="checkbox" id="chkDist" checked onchange="recalcTotalToPay()"> District Dues</label>
+        <div id="paymentSection" style="margin-top: 20px;">
+            <h3 style="color: #003366; font-size: 16px; margin-bottom: 8px;">Pay Online (QR Code)</h3>
+            <p style="font-size:13px; color: #657786; margin-bottom:10px;">कुन शीर्षकको रकम तिर्न लाग्नुभएको हो टिक लगाउनुहोस्:</p>
+            <label style="font-size: 14.5px; display: block; margin-bottom: 5px;"><input type="checkbox" id="chkIntl" checked onchange="recalcTotalToPay()"> International Dues</label>
+            <label style="font-size: 14.5px; display: block; margin-bottom: 15px;"><input type="checkbox" id="chkDist" checked onchange="recalcTotalToPay()"> District Dues</label>
             
-            <h4 style="color:#dc3545; margin: 10px 0;">तिर्नुपर्ने रकम: रु. <span id="payAmountText">0</span></h4>
+            <h4 style="color:#e74c3c; font-size: 17px; margin: 10px 0;">कुल तिर्नुपर्ने रकम: रु. <span id="payAmountText">0</span></h4>
             
-            <div style="text-align:center; margin: 10px 0;">
-                <img src="https://via.placeholder.com/250?text=Your+QR+Code+Here" style="max-width:180px; border:1px solid #ccc;">
+            <div style="text-align:center; margin: 15px 0; background: #f8f9fa; padding: 10px; border-radius: 6px;">
+                <img src="https://via.placeholder.com/250?text=Your+QR+Code+Here" style="max-width:180px; border:1px solid #ddd; border-radius: 4px;">
             </div>
 
-            <label><b>१. भुक्तानी गरेको बैंक रसिद वा स्क्रिनसट अपलोड गर्नुहोस् (भौचर फोटो):</b></label>
-            <input type="file" id="userFileAccept" accept="image/*">
+            <label style="font-size: 14px; font-weight: 600; color: #2c3e50;">१. भुक्तानी गरेको बैंक रसिद वा स्क्रिनसट अपलोड गर्नुहोस् (भौचर फोटो):</label>
+            <input type="file" id="userFileAccept" accept="image/*" style="border: 1px dashed #ccc; padding: 10px; background: #fafbfc;">
 
-            <label style="margin-top:10px; display:block;"><b>२. ट्रान्ज्याक्सन आईडी (कम्तीमा ८ अक्षर हुनुपर्ने):</b></label>
+            <label style="margin-top:12px; display:block; font-size: 14px; font-weight: 600; color: #2c3e50;">२. ट्रान्ज्याक्सन आईडी (कम्तीमा ८ अक्षर हुनुपर्ने):</label>
             <input type="text" id="userTxnId" placeholder="Enter Transaction ID (Min 8 characters)...">
             
-            <button class="primary-btn" style="margin-top:10px; background-color:#28a745;" onclick="submitUserPayment()">Submit Payment Report</button>
+            <button class="primary-btn" style="margin-top:15px; background-color:#2ecc71; padding: 12px; font-size: 16px;" onclick="submitUserPayment()">Submit Payment Report</button>
         </div>
     </div>
 </div>
@@ -144,20 +150,20 @@
         <span class="close" onclick="closeAdminModal()">&times;</span>
         
         <div id="loginBox" class="search-container" style="margin-top:15px;">
-            <h3 style="margin-top:0;">Secure Admin Login</h3>
+            <h3 style="margin-top:0; color: #003366;">Secure Admin Login</h3>
             <input type="text" id="adminUser" placeholder="Username">
             <input type="password" id="adminPass" placeholder="Password">
             <button class="primary-btn" onclick="checkAdminLogin()">Login as Admin</button>
         </div>
 
         <div class="admin-dashboard-view" id="adminDashboard">
-            <h2 style="color:#003366; margin-top:0;">Admin Dashboard</h2>
+            <h2 style="color:#003366; margin-top:0; font-weight: 700;">Admin Dashboard</h2>
             <label><b>क्लब छान्नुहोस् (Select Club to Edit):</b></label>
             <select id="adminClubSelect" onchange="loadClubToAdminForm()">
                 <option value="">-- Select a Club --</option>
             </select>
 
-            <div id="adminForm" style="display:none; margin-top:15px; border-top:1px solid #ccc; padding-top:15px;">
+            <div id="adminForm" style="display:none; margin-top:15px; border-top:1px solid #e1e8ed; padding-top:15px;">
                 <p><b>Lion ID:</b> <span id="admLionId"></span></p>
                 <label>Club Name:</label><input type="text" id="admClubName">
                 <label>Active Member Count:</label><input type="number" id="admActiveMembers">
@@ -181,7 +187,7 @@
                     <option value="Paid">Paid</option>
                 </select>
                 
-                <button class="primary-btn" style="background-color: #28a745; margin-top:15px;" onclick="submitAdminUpdate()">Save & Update Sheet</button>
+                <button class="primary-btn" style="background-color: #2ecc71; margin-top:15px; padding: 12px;" onclick="submitAdminUpdate()">Save & Update Sheet</button>
             </div>
         </div>
     </div>
