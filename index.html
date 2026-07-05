@@ -6,35 +6,38 @@
     <title>Lions Club Dues Tracking System</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; color: #333; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .container { max-width: 950px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         
-        /* नयाँ हेडर र सेतो ब्याकग्राउन्ड भएको लोगो लेआउट */
-        .header-section { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
-        .logo-title-group { display: flex; align-items: center; gap: 20px; }
-        .logo-box { background-color: white; padding: 5px; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
-        .logo-box img { width: 90px; height: auto; display: block; }
-        .title-box { text-align: left; }
-        .title-box h3 { margin: 0; font-size: 16px; color: #666; font-weight: normal; }
-        .title-box h2 { margin: 2px 0; font-size: 20px; color: #444; font-weight: bold; }
-        .title-box h1 { margin: 5px 0 0 0; font-size: 28px; color: #003366; font-weight: bold; }
+        /* नयाँ लेआउट: लोगो र एड्मिन लगइन सबैभन्दा माथिको लाइनमा */
+        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
         
-        /* ताल्चा आइकन बटन */
-        .admin-lock-btn { background: none; border: none; font-size: 26px; cursor: pointer; padding: 10px; transition: transform 0.2s; }
-        .admin-lock-btn:hover { transform: scale(1.2); }
+        /* लोगो बक्स - सेतो ब्याकग्राउन्ड फिक्स */
+        .logo-box { background-color: white; padding: 5px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .logo-box img { width: 110px; height: auto; display: block; }
+        
+        /* एड्मिन लगइन बटन ताल्चा सहित */
+        .admin-login-btn { background-color: #eef2f7; border: 1px solid #ccc; padding: 8px 15px; font-size: 15px; font-weight: bold; color: #333; cursor: pointer; border-radius: 20px; display: flex; align-items: center; gap: 8px; width: auto; transition: background 0.2s; }
+        .admin-login-btn:hover { background-color: #ddd; }
 
+        /* बीचमा आउने ठूला मुख्य शीर्षकहरू */
+        .main-titles { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #eee; }
+        .main-titles h1 { margin: 0; font-size: 42px; color: #003366; font-weight: bold; letter-spacing: 0.5px; }
+        .main-titles h2 { margin: 5px 0; font-size: 26px; color: #444; font-weight: bold; }
+        .main-titles h3 { margin: 5px 0 0 0; font-size: 22px; color: #666; font-weight: normal; text-transform: uppercase; }
+        
         .search-container { margin: 20px 0; padding: 15px; background: #eef2f7; border-radius: 5px; }
         input, select, button { padding: 10px; font-size: 16px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-        button { background-color: #003366; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        button:hover { background-color: #002244; }
+        button.primary-btn { background-color: #003366; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        button.primary-btn:hover { background-color: #002244; }
         
-        /* फोटो अनुसारकै ओरिजिनल निलो टेबल डिजाइन */
+        /* ओरिजिनल निलो टेबल डिजाइन */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         th { background-color: #003366; color: white; font-size: 16px; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         tr:hover { background-color: #f1f1f1; cursor: pointer; }
         
-        /* फोटो अनुसारकै रातो, हरियो र पहेंलो रङ्गका ब्याजहरू */
+        /* रातो, हरियो र पहेंलो रङ्गका स्टाटस ब्याजहरू */
         .badge { padding: 6px 12px; border-radius: 4px; font-weight: bold; color: white; font-size: 14px; text-align: center; display: inline-block; min-width: 80px; }
         .badge-paid { background-color: #28a745; }
         .badge-unpaid { background-color: #dc3545; }
@@ -52,20 +55,19 @@
 <body>
 
 <div class="container">
-    <div class="header-section">
-        <div class="logo-title-group">
-            <div class="logo-box">
-                <img id="lionsLogo" src="data:image/png;base64,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" alt="Lions Club Logo">
-            </div>
-            <div class="title-box">
-                <h3>Lions International</h3>
-                <h2>District 325 F</h2>
-                <h1>Club Dues Portal</h1>
-            </div>
+    <div class="top-bar">
+        <div class="logo-box">
+            <img id="lionsLogo" src="data:image/png;base64,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" alt="Lions International Logo">
         </div>
         <div>
-            <button class="admin-lock-btn" onclick="openAdminModal()" title="Admin Login">🔒</button>
+            <button class="admin-login-btn" onclick="openAdminModal()">🔒 Admin Login</button>
         </div>
+    </div>
+    
+    <div class="main-titles">
+        <h1>Lions International</h1>
+        <h2>District 325 F</h2>
+        <h3>Club Dues Portal</h3>
     </div>
     
     <div class="search-container">
@@ -94,7 +96,7 @@
         <h3 style="color:#003366; margin-bottom:15px;">Exchange Rate Required</h3>
         <p>कृपया यस महिनाको लायन्स एक्सचेन्ज रेट ($1 = NPR) राख्नुहोस्:</p>
         <input type="number" id="tempDollarRate" value="135" style="text-align: center; font-size: 20px; font-weight: bold; color: #dc3545;">
-        <button style="margin-top:15px;" onclick="saveRateAndProceed()">अघि बढ्नुहोस् (Proceed)</button>
+        <button class="primary-btn" style="margin-top:15px;" onclick="saveRateAndProceed()">अघि बढ्नुहोस् (Proceed)</button>
     </div>
 </div>
 
@@ -132,7 +134,7 @@
             <label style="margin-top:10px; display:block;"><b>२. ट्रान्ज्याक्सन आईडी (कम्तीमा ८ अक्षर हुनुपर्ने):</b></label>
             <input type="text" id="userTxnId" placeholder="Enter Transaction ID (Min 8 characters)...">
             
-            <button style="margin-top:10px; background-color:#28a745;" onclick="submitUserPayment()">Submit Payment Report</button>
+            <button class="primary-btn" style="margin-top:10px; background-color:#28a745;" onclick="submitUserPayment()">Submit Payment Report</button>
         </div>
     </div>
 </div>
@@ -145,7 +147,7 @@
             <h3 style="margin-top:0;">Secure Admin Login</h3>
             <input type="text" id="adminUser" placeholder="Username">
             <input type="password" id="adminPass" placeholder="Password">
-            <button onclick="checkAdminLogin()">Login as Admin</button>
+            <button class="primary-btn" onclick="checkAdminLogin()">Login as Admin</button>
         </div>
 
         <div class="admin-dashboard-view" id="adminDashboard">
@@ -179,7 +181,7 @@
                     <option value="Paid">Paid</option>
                 </select>
                 
-                <button style="background-color: #28a745; margin-top:15px;" onclick="submitAdminUpdate()">Save & Update Sheet</button>
+                <button class="primary-btn" style="background-color: #28a745; margin-top:15px;" onclick="submitAdminUpdate()">Save & Update Sheet</button>
             </div>
         </div>
     </div>
@@ -200,7 +202,7 @@
             renderTable();
             populateAdminDropdown();
         } catch (err) {
-            alert("गुगल सिटबाट डाटा लोड हुन सकेन। स्क्रिप्ट URL वा प्रिमिसन चेक गर्नुहोस्।");
+            alert("गुगल सिटबाट डाटा लोड हुन सकेन ।");
         }
     }
 
@@ -226,7 +228,6 @@
             let intlStatusStr = row["Payment Status"] || 'Unpaid';
             let distStatusStr = row["District Payment Status"] || 'Unpaid';
 
-            // ओरिजिनल फोटो अनुसारकै रातो/पहेंलो/हरियो रङ्गका ब्यागहरू
             let intlBadge = `<span class="badge ${intlStatusStr === 'Paid' ? 'badge-paid' : (intlStatusStr === 'Pending Verification' ? 'badge-pending' : 'badge-unpaid')}">${intlStatusStr}</span>`;
             let distBadge = `<span class="badge ${distStatusStr === 'Paid' ? 'badge-paid' : (distStatusStr === 'Pending Verification' ? 'badge-pending' : 'badge-unpaid')}">${distStatusStr}</span>`;
 
@@ -235,7 +236,6 @@
         });
     }
 
-    // क्लब क्लिक गरेपछि सबैभन्दा पहिले रेट माग्ने पप-अप ट्रिगर गर्ने
     function triggerClubClick(club) {
         selectedClubForUser = club;
         document.getElementById('rateModal').style.display = 'block';
@@ -243,7 +243,6 @@
 
     function closeRateModal() { document.getElementById('rateModal').style.display = 'none'; }
 
-    // रेट सेभ गरेर मुख्य विवरण विन्डो खोल्ने
     function saveRateAndProceed() {
         chosenDollarRate = parseFloat(document.getElementById('tempDollarRate').value) || 135;
         closeRateModal();
@@ -303,7 +302,6 @@
         document.getElementById('payAmountText').innerText = amt.toLocaleString();
     }
 
-    // युजर सबमिसन (भौचर फोटो अपलोड + आईडी भ्यालिडेसन)
     async function submitUserPayment() {
         const txnId = document.getElementById('userTxnId').value.trim();
         const fileInput = document.getElementById('userFileAccept');
@@ -313,7 +311,7 @@
             return; 
         }
         if(fileInput.files.length === 0) {
-            alert("कृपया बैंक रसिद वा स्क्रिनसट (भौचरको फोटो) अनिवार्य अपलोड गर्नुहोस्।");
+            alert("कृपया बैंक रसिद वा स्क्रिनसट अनिवार्य अपलोड गर्नुहोस्।");
             return;
         }
 
@@ -328,7 +326,6 @@
                 payInternational: document.getElementById('chkIntl').checked,
                 payDistrict: document.getElementById('chkDist').checked,
                 fileData: e.target.result,
-                // गुगल ड्राइभमा सेभ हुने फोटोको नाम अटोमेटिक मिलाउने लजिक
                 fileName: selectedClubForUser["Club Name"].replace(/\s+/g, '_') + "_" + txnId + "_Voucher.jpg",
                 fileMime: file.type
             };
@@ -341,8 +338,6 @@
         };
         reader.readAsDataURL(file);
     }
-
-    // ================= एड्मिन लगइन र कन्ट्रोल क्षेत्र =================
 
     function openAdminModal() { document.getElementById('adminModal').style.display = 'block'; }
     function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
@@ -390,7 +385,6 @@
             document.getElementById('admIntlStatus').value = club["Payment Status"] || "Unpaid";
             document.getElementById('admDistrictStatus').value = club["District Payment Status"] || "Unpaid";
             
-            // यदि भौचर लिंक छ भने एड्मिनलाई ड्यासबोर्डमै हेर्ने लिंक दिने
             if(club["Receipt Link"]) {
                 document.getElementById('admReceiptLink').href = club["Receipt Link"];
                 document.getElementById('receiptViewRow').style.display = 'block';
