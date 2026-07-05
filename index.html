@@ -64,7 +64,7 @@
         .qr-thumb { max-width: 180px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; transition: transform 0.2s; }
         .qr-thumb:hover { transform: scale(1.05); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
 
-        /* लाइटबक्स वा ठूलो क्युआरको लागि थपिएको स्टाइल */
+        /* लाइटबक्स वा ठूलो क्युआरको स्टाइल */
         .lightbox { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
         .lightbox img { max-width: 90%; max-height: 80%; border-radius: 8px; box-shadow: 0 5px 25px rgba(255,255,255,0.2); }
 
@@ -75,7 +75,6 @@
 <body>
 
 <div class="container">
-    <!-- रो १: लोगो र एड्मिन लगइन -->
     <div class="top-bar">
         <div class="logo-box">
             <img id="lionsLogo" src="logo.png" alt="Lions International Logo" onerror="this.src='https://via.placeholder.com/100?text=Lions+Logo'">
@@ -85,20 +84,17 @@
         </div>
     </div>
     
-    <!-- रो २: मुख्य शीर्षकहरू -->
     <div class="main-titles">
         <h1>Lions International</h1>
         <h2>District 325 F</h2>
         <h3>Club Dues Portal</h3>
     </div>
     
-    <!-- सर्च बार सेक्सन -->
     <div class="search-container">
         <label><b>खोज्नुहोस् (क्लबको नाम वा Lion ID):</b></label>
         <input type="text" id="searchInp" placeholder="Type Club Name or ID..." oninput="renderTable()">
     </div>
 
-    <!-- मुख्य डेटा तालिका (INTL. DUES र DISTRICT DUES मा परिमार्जन गरिएको) -->
     <table id="clubTable">
         <thead>
             <tr>
@@ -114,7 +110,6 @@
     </table>
 </div>
 
-<!-- १. एक्सचेन्ज रेट पप-अप विन्डो -->
 <div id="rateModal" class="modal">
     <div class="modal-content" style="max-width: 400px; text-align: center;">
         <span class="close" onclick="closeRateModal()">&times;</span>
@@ -125,7 +120,6 @@
     </div>
 </div>
 
-<!-- २. क्लब विवरण र भौचर अपलोड पप-अप विन्डो -->
 <div id="detailsModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeDetailsModal()">&times;</span>
@@ -144,11 +138,8 @@
 
         <div id="paymentSection" style="margin-top: 20px;">
             <h3 style="color: #003366; font-size: 16px; margin-bottom: 8px;">Pay Online (QR Code)</h3>
-            
-            <!-- नेपाली शब्दलाई थोरै बोल्ड (font-weight: 700) बनाइएको -->
             <p style="font-size:14.5px; color: #2c3e50; margin-bottom:12px; font-weight: 700;">कुन शीर्षकको रकम तिर्न लाग्नुभएको हो टिक लगाउनुहोस्:</p>
             
-            <!-- चेकबक्सहरूलाई एउटै सीधा लाइनमा मिलाइएको -->
             <div class="checkbox-group">
                 <label class="checkbox-label">
                     <input type="checkbox" id="chkIntl" checked onchange="recalcTotalToPay()">
@@ -162,13 +153,11 @@
             
             <h4 style="color:#e74c3c; font-size: 17px; margin: 10px 0;">कुल तिर्नुपर्ने रकम: रु. <span id="payAmountText">0</span></h4>
             
-            <!-- अनलाइन पेमेन्ट क्युआर (क्लिक गर्दा जुम हुने बनाइएको) -->
             <div style="text-align:center; margin: 15px 0; background: #f8f9fa; padding: 10px; border-radius: 6px;">
                 <img src="qr.jpg" class="qr-thumb" alt="Payment QR Code" onclick="openLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250?text=QR+Not+Found'">
                 <p style="font-size: 11px; color: #7f8c8d; margin: 5px 0 0 0;">(क्युआर कोड ठूलो बनाएर हेर्न यहाँ क्लिक गर्नुहोस्)</p>
             </div>
 
-            <!-- ट्रान्ज्याक्सन आईडी हटाइयो, सिधै भौचर अपलोड मात्र राखियो -->
             <label style="font-size: 14px; font-weight: 600; color: #2c3e50; display: block; margin-bottom: 8px;">१. भुक्तानी गरेको बैंक रसिद वा स्क्रिनसट अपलोड गर्नुहोस् (भौचर फोटो):</label>
             <input type="file" id="userFileAccept" accept="image/*" style="border: 1px dashed #ccc; padding: 10px; background: #fafbfc;">
             
@@ -177,18 +166,15 @@
     </div>
 </div>
 
-<!-- क्युआर ठूलो देखाउने लाइटबक्स विन्डो -->
 <div id="qrLightbox" class="lightbox" onclick="closeLightbox()">
     <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
     <img id="lightboxImg" src="" alt="Zoomed QR">
 </div>
 
-<!-- ३. एड्मिन लगइन र ड्यासबोर्ड पप-अप विन्डो -->
 <div id="adminModal" class="modal">
     <div class="modal-content" style="max-width:600px;">
         <span class="close" onclick="closeAdminModal()">&times;</span>
         
-        <!-- एड्मिन लगइन फर्म -->
         <div id="loginBox" class="search-container" style="margin-top:15px;">
             <h3 style="margin-top:0; color: #003366;">Secure Admin Login</h3>
             <input type="text" id="adminUser" placeholder="Username">
@@ -196,7 +182,6 @@
             <button class="primary-btn" onclick="checkAdminLogin()">Login as Admin</button>
         </div>
 
-        <!-- एड्मिन ड्यासबोर्ड -->
         <div class="admin-dashboard-view" id="adminDashboard">
             <h2 style="color:#003366; margin-top:0; font-weight: 700;">Admin Dashboard</h2>
             <label><b>क्लब छान्नुहोस् (Select Club to Edit):</b></label>
@@ -228,7 +213,6 @@
                     <option value="Paid">Paid</option>
                 </select>
                 
-                <!-- एड्मिन एक्सन बटनहरू (नियमित ड्युस रिमाइन्डर म्यासेज फिचर सहित) -->
                 <div class="admin-action-row">
                     <button class="primary-btn" style="background-color: #2ecc71; flex: 2;" onclick="submitAdminUpdate()">Save & Update Sheet</button>
                     <button class="primary-btn" style="background-color: #e67e22; flex: 1;" onclick="sendAdminDuesReminder()">🔔 Send Reminder</button>
@@ -239,14 +223,16 @@
 </div>
 
 <script>
-    // हजुरको स्थायी गुगल वेब एप URL
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2Aty2uZ_e6fzEossHSUTyDgpTNwUr3xcEKxTIA_ek8VgleWxiFwwCpB28jEOcE4c_/exec"; 
 
     let globalClubs = [];
     let selectedClubForUser = null;
     let chosenDollarRate = 135;
+    
+    // एड्मिनले चेन्ज गर्नु अघिको पुरानो स्टाटस ट्र्याक गर्न दुईवटा भ्यारियबल
+    let oldIntlStatus = "";
+    let oldDistrictStatus = "";
 
-    // क्युआर लाइटबक्स फङ्सनहरू
     function openLightbox(src) {
         document.getElementById('lightboxImg').src = src;
         document.getElementById('qrLightbox').style.display = 'flex';
@@ -370,7 +356,6 @@
             return;
         }
 
-        // कुन-कुन शीर्षक छानिएको छ ट्र्याक गर्ने
         let chkIntl = document.getElementById('chkIntl').checked;
         let chkDist = document.getElementById('chkDist').checked;
         let selectedDuesText = "";
@@ -388,7 +373,7 @@
 
         let file = fileInput.files[0];
         let reader = new FileReader();
-        let timestampId = new Date().getTime(); // ट्रान्ज्याक्सन आईडीको सट्टा युनिक टाइमस्ट्याम्प नामकरणको लागि
+        let timestampId = new Date().getTime();
         
         reader.onload = async function(e) {
             let payload = {
@@ -408,7 +393,6 @@
             closeDetailsModal();
             loadData();
 
-            // सफलतापुर्वक सेभ भएपछि कृष्ण ज्योती शाक्य ज्यूको नम्बरमा अटो व्हाट्सएप डाइरेक्ट विन्डो
             let waNumber = "9779851030055";
             let waMessage = `नमस्ते लायन कृष्ण ज्योती शाक्य ज्यू,\n\n${selectedClubForUser["Club Name"]} को ${selectedDuesText} को Dues भुक्तानी गरी भौचर यसै साथ पठाएको छु ।\n\n*नाम:* \n*सम्पर्क:* \n\nविवरण चेक गरी कृपया सिस्टममा अपडेट गरिदिनुहोला ।`;
             
@@ -461,8 +445,13 @@
             document.getElementById('admNewMembers').value = club["New Member"] || 0;
             document.getElementById('admIntlDues').value = club["International Due Amount"];
             document.getElementById('admWhatsApp').value = club["WhatsApp Number"] || "";
-            document.getElementById('admIntlStatus').value = club["Payment Status"] || "Unpaid";
-            document.getElementById('admDistrictStatus').value = club["District Payment Status"] || "Unpaid";
+            
+            // लोड हुँदाको पुरानो स्टाटस सेभ गर्ने (कम्प्यारिजनका लागि)
+            oldIntlStatus = club["Payment Status"] || "Unpaid";
+            oldDistrictStatus = club["District Payment Status"] || "Unpaid";
+
+            document.getElementById('admIntlStatus').value = oldIntlStatus;
+            document.getElementById('admDistrictStatus').value = oldDistrictStatus;
             
             if(club["Receipt Link"]) {
                 document.getElementById('admReceiptLink').href = club["Receipt Link"];
@@ -480,6 +469,10 @@
         let cName = document.getElementById('admClubName').value;
         let targetPhone = document.getElementById('admWhatsApp').value.trim().replace(/[-+ \s]/g, "");
         
+        // नयाँ सेट गरिएको स्टाटसहरू लिने
+        let newIntlStatus = document.getElementById('admIntlStatus').value;
+        let newDistrictStatus = document.getElementById('admDistrictStatus').value;
+
         let payload = {
             actionType: "admin_edit",
             lionId: id,
@@ -488,8 +481,8 @@
             newMembers: document.getElementById('admNewMembers').value,
             intlDues: document.getElementById('admIntlDues').value,
             whatsappNumber: targetPhone,
-            intlStatus: document.getElementById('admIntlStatus').value,
-            districtStatus: document.getElementById('admDistrictStatus').value
+            intlStatus: newIntlStatus,
+            districtStatus: newDistrictStatus
         };
 
         let res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
@@ -497,15 +490,18 @@
         alert(result.message);
         loadData();
 
-        // ड्युस अपडेट भएपछि स्वतः क्लबको नम्बरमा व्हाट्सएप सूचना पठाउने
-        if(targetPhone) {
-            let updateMsg = `तपाईँको क्लब *${cName}* को दिवस (Dues) सिस्टममा अपडेट भयो। धन्यवाद!`;
-            let encodedUpdate = encodeURIComponent(updateMsg);
-            window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodedUpdate}`, '_blank');
+        /* क्रिटिकल चेक: यदि इन्टरनेसनल वा डिस्ट्रिक्ट मध्ये कुनै पनि पेमेन्ट स्टाटस पहिलेको भन्दा 
+           परिवर्तन भएको छ भने मात्र व्हाट्सएप म्यासेज खोल्ने। अन्य डाटाहरू चेन्ज गर्दा खुल्दैन।
+        */
+        if (newIntlStatus !== oldIntlStatus || newDistrictStatus !== oldDistrictStatus) {
+            if(targetPhone) {
+                let updateMsg = `तपाईँको क्लब *${cName}* को दिवस (Dues) सिस्टममा अपडेट भयो। धन्यवाद!`;
+                let encodedUpdate = encodeURIComponent(updateMsg);
+                window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodedUpdate}`, '_blank');
+            }
         }
     }
 
-    // एड्मिनले ड्युस बाँकी भएका क्लबहरूलाई जुनसुकै बेला ताकेता (Reminder) सन्देश पठाउन मिल्ने नयाँ फिचर
     function sendAdminDuesReminder() {
         let cName = document.getElementById('admClubName').value;
         let targetPhone = document.getElementById('admWhatsApp').value.trim().replace(/[-+ \s]/g, "");
