@@ -1,522 +1,623 @@
 <!DOCTYPE html>
 <html lang="ne">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lions Club Dues Tracking System</title>
-    <style>
-        /* युनिभर्सल र प्रिमियम फन्ट तथा ब्याकग्राउन्ड */
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 10px 20px; background-color: #f5f7fa; color: #2c3e50; }
-        .container { max-width: 960px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
-        
-        /* टप बार लेआउट */
-        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0px; padding-bottom: 0px; }
-        
-        /* लोगो बक्स */
-        .logo-box { background-color: white; display: flex; align-items: center; justify-content: center; }
-        .logo-box img { width: 100px; height: auto; display: block; }
-        
-        /* युनिभर्सल एड्मिन लगइन बटन */
-        .admin-login-btn { background-color: #ffffff; border: 1px solid #dcdde1; padding: 8px 16px; font-size: 14px; font-weight: 600; color: #2f3640; cursor: pointer; border-radius: 30px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); transition: all 0.2s ease; }
-        .admin-login-btn:hover { background-color: #f8f9fa; border-color: #b2bec3; transform: translateY(-1px); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lions Club Dues Tracking System</title>
 
-        /* हेडर शीर्षकहरू */
-        .main-titles { text-align: center; margin-top: -40px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e1e8ed; }
-        .main-titles h1 { margin: 0; font-size: 38px; color: #003366; font-weight: 800; letter-spacing: -0.5px; }
-        .main-titles h2 { margin: 4px 0; font-size: 24px; color: #003366; font-weight: 700; }
-        .main-titles h3 { margin: 8px 0 0 0; font-size: 26px; color: #D4AF37; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
-        
-        /* आधुनिक क्युब इनपुट बक्स */
-        .search-container { margin: 20px 0; padding: 15px 20px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e1e8ed; }
-        .search-container label { font-size: 14px; color: #4f5d75; display: block; margin-bottom: 6px; }
-        input, select, button { padding: 12px; font-size: 15px; margin: 5px 0; width: 100%; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; }
-        input:focus, select:focus { border-color: #003366; outline: none; box-shadow: 0 0 0 3px rgba(0,51,102,0.1); }
-        
-        button.primary-btn { background-color: #003366; color: white; border: none; cursor: pointer; font-weight: 600; transition: background 0.2s; }
-        button.primary-btn:hover { background-color: #002244; }
-        
-        /* प्रिमियम क्युब तालिका (Table Structure) */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #e1e8ed; }
-        th { background-color: #003366; color: white; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        tr:nth-child(even) { background-color: #f8f9fa; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover { background-color: #edf2f7; cursor: pointer; }
-        
-        /* स्ट्यान्डर्ड स्टाटस ब्याजहरू */
-        .badge { padding: 6px 14px; border-radius: 4px; font-weight: 700; color: white; font-size: 13px; text-align: center; display: inline-block; min-width: 90px; text-transform: uppercase; letter-spacing: 0.3px; }
-        .badge-paid { background-color: #2ecc71; }
-        .badge-unpaid { background-color: #e74c3c; }
-        .badge-pending { background-color: #f1c40f; color: #2c3e50; }
-        
-        /* मोडल पप-अप विन्डोज */
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); overflow: auto; }
-        .modal-content { background-color: white; margin: 6% auto; padding: 30px; border-radius: 10px; width: 90%; max-width: 550px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-        .close { position: absolute; right: 20px; top: 15px; font-size: 26px; cursor: pointer; color: #b2bec3; transition: color 0.2s; }
-        .close:hover { color: #2f3640; }
-        
-        /* चेकबक्सहरूलाई सीधा र चिटिक्क बनाउने एलाइनमेन्ट */
-        .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; text-align: left; }
-        .checkbox-label { display: flex; align-items: center; gap: 10px; font-size: 15px; cursor: pointer; }
-        .checkbox-label input { width: auto; margin: 0; cursor: pointer; transform: scale(1.2); }
+<style>
+body { font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; margin:10px 20px; background-color:#f5f7fa; color:#2c3e50; }
+.container { max-width:960px; margin:auto; background:white; padding:25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.06); }
+.top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:0; padding-bottom:0; }
+.logo-box { background:white; display:flex; align-items:center; justify-content:center; }
+.logo-box img { width:100px; height:auto; display:block; }
 
-        /* क्युआर कोडको जुम इफेक्ट */
-        .qr-thumb { max-width: 180px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; transition: transform 0.2s; }
-        .qr-thumb:hover { transform: scale(1.05); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+.admin-login-btn { background:#fff; border:1px solid #dcdde1; padding:8px 16px; font-size:14px; font-weight:600; color:#2f3640; cursor:pointer; border-radius:30px; display:flex; align-items:center; gap:6px; box-shadow:0 2px 5px rgba(0,0,0,0.04); transition:all 0.2s ease; }
+.admin-login-btn:hover { background:#f8f9fa; border-color:#b2bec3; transform:translateY(-1px); }
 
-        /* लाइटबक्स वा ठूलो क्युआरको स्टाइल */
-        .lightbox { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
-        .lightbox img { max-width: 90%; max-height: 80%; border-radius: 8px; box-shadow: 0 5px 25px rgba(255,255,255,0.2); }
+.main-titles { text-align:center; margin-top:-40px; margin-bottom:25px; padding-bottom:20px; border-bottom:1px solid #e1e8ed; }
+.main-titles h1 { margin:0; font-size:38px; color:#003366; font-weight:800; letter-spacing:-0.5px; }
+.main-titles h2 { margin:4px 0; font-size:24px; color:#003366; font-weight:700; }
+.main-titles h3 { margin:8px 0 0 0; font-size:26px; color:#D4AF37; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
 
-        .admin-dashboard-view { display: none; margin-top: 20px; padding: 20px; background: #fffdf3; border: 2px dashed #D4AF37; border-radius: 8px; }
-        .admin-action-row { display: flex; gap: 10px; margin-top: 15px; }
-    </style>
+.search-container { margin:20px 0; padding:15px 20px; background:#f8f9fa; border-radius:8px; border:1px solid #e1e8ed; }
+.search-container label { font-size:14px; color:#4f5d75; display:block; margin-bottom:6px; }
+
+input, select, button { padding:12px; font-size:15px; margin:5px 0; width:100%; box-sizing:border-box; border-radius:6px; border:1px solid #ccc; }
+input:focus, select:focus { border-color:#003366; outline:none; box-shadow:0 0 0 3px rgba(0,51,102,0.1); }
+
+button.primary-btn { background:#003366; color:white; border:none; cursor:pointer; font-weight:600; transition:background 0.2s; }
+button.primary-btn:hover { background:#002244; }
+button:disabled { opacity:0.7; cursor:not-allowed; }
+
+table { width:100%; border-collapse:collapse; margin-top:15px; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+th, td { padding:14px 16px; text-align:left; border-bottom:1px solid #e1e8ed; }
+th { background:#003366; color:white; font-size:15px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+tr:nth-child(even) { background:#f8f9fa; }
+tr:last-child td { border-bottom:none; }
+tr:hover { background:#edf2f7; cursor:pointer; }
+
+.badge { padding:6px 14px; border-radius:4px; font-weight:700; color:white; font-size:13px; text-align:center; display:inline-block; min-width:90px; text-transform:uppercase; letter-spacing:0.3px; }
+.badge-paid { background:#2ecc71; }
+.badge-unpaid { background:#e74c3c; }
+.badge-pending { background:#f1c40f; color:#2c3e50; }
+
+.modal { display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.4); overflow:auto; }
+.modal-content { background:white; margin:6% auto; padding:30px; border-radius:10px; width:90%; max-width:550px; position:relative; box-shadow:0 10px 30px rgba(0,0,0,0.15); }
+.close { position:absolute; right:20px; top:15px; font-size:26px; cursor:pointer; color:#b2bec3; transition:color 0.2s; }
+.close:hover { color:#2f3640; }
+
+.checkbox-group { display:flex; flex-direction:column; gap:10px; margin:15px 0; text-align:left; }
+.checkbox-label { display:flex; align-items:center; gap:10px; font-size:15px; cursor:pointer; }
+.checkbox-label input { width:auto; margin:0; cursor:pointer; transform:scale(1.2); }
+
+.qr-thumb { max-width:180px; border:1px solid #ddd; border-radius:4px; cursor:pointer; transition:transform 0.2s; }
+.qr-thumb:hover { transform:scale(1.05); box-shadow:0 4px 10px rgba(0,0,0,0.15); }
+
+.lightbox { display:none; position:fixed; z-index:200; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; }
+.lightbox img { max-width:90%; max-height:80%; border-radius:8px; box-shadow:0 5px 25px rgba(255,255,255,0.2); }
+
+.admin-dashboard-view { display:none; margin-top:20px; padding:20px; background:#fffdf3; border:2px dashed #D4AF37; border-radius:8px; }
+.admin-action-row { display:flex; gap:10px; margin-top:15px; }
+
+@media(max-width:700px){
+  body { margin:8px; }
+  .container { padding:15px; }
+  .main-titles { margin-top:5px; }
+  .main-titles h1 { font-size:28px; }
+  .main-titles h2 { font-size:20px; }
+  .main-titles h3 { font-size:22px; }
+  table { font-size:13px; }
+  th, td { padding:10px 8px; }
+  .admin-action-row { flex-direction:column; }
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
-    <div class="top-bar">
-        <div class="logo-box">
-            <img id="lionsLogo" src="logo.png" alt="Lions International Logo" onerror="this.src='https://via.placeholder.com/100?text=Lions+Logo'">
-        </div>
-        <div>
-            <button class="admin-login-btn" onclick="openAdminModal()">🔒 Admin Login</button>
-        </div>
+  <div class="top-bar">
+    <div class="logo-box">
+      <img id="lionsLogo" src="logo.png" alt="Lions International Logo" onerror="this.src='https://via.placeholder.com/100?text=Lions+Logo'">
     </div>
-    
-    <div class="main-titles">
-        <h1>Lions International</h1>
-        <h2>District 325 F</h2>
-        <h3>Club Dues Portal</h3>
+    <div>
+      <button class="admin-login-btn" onclick="openAdminModal()">🔒 Admin Login</button>
     </div>
-    
-    <div class="search-container">
-        <label><b>खोज्नुहोस् (क्लबको नाम वा Lion ID):</b></label>
-        <input type="text" id="searchInp" placeholder="Type Club Name or ID..." oninput="renderTable()">
-    </div>
+  </div>
 
-    <table id="clubTable">
-        <thead>
-            <tr>
-                <th>Club Name</th>
-                <th>Lion ID</th>
-                <th>Intl. Dues</th>
-                <th>District Dues</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            <tr><td colspan="4" style="text-align:center;">डेटा लोड हुँदैछ... कृपया पर्खनुहोस्।</td></tr>
-        </tbody>
-    </table>
+  <div class="main-titles">
+    <h1>Lions International</h1>
+    <h2>District 325 F</h2>
+    <h3>Club Dues Portal</h3>
+  </div>
+
+  <div class="search-container">
+    <label><b>खोज्नुहोस् (क्लबको नाम वा Lion ID):</b></label>
+    <input type="text" id="searchInp" placeholder="Type Club Name or ID..." oninput="renderTable()">
+  </div>
+
+  <table id="clubTable">
+    <thead>
+      <tr>
+        <th>Club Name</th>
+        <th>Lion ID</th>
+        <th>Intl. Dues</th>
+        <th>District Dues</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <tr><td colspan="4" style="text-align:center;">डेटा लोड हुँदैछ... कृपया पर्खनुहोस्।</td></tr>
+    </tbody>
+  </table>
 </div>
 
 <div id="rateModal" class="modal">
-    <div class="modal-content" style="max-width: 400px; text-align: center;">
-        <span class="close" onclick="closeRateModal()">&times;</span>
-        <h3 style="color:#003366; margin-bottom:15px; font-weight: 700;">Exchange Rate Required</h3>
-        <p style="font-size: 14px; color: #4f5d75;">कृपया यस महिनाको लायन्स एक्सचेन्ज रेट ($1 = NPR) राख्नुहोस्:</p>
-        <input type="number" id="tempDollarRate" value="135" style="text-align: center; font-size: 24px; font-weight: bold; color: #e74c3c; border-radius: 6px;">
-        <button class="primary-btn" style="margin-top:15px; padding: 12px;" onclick="saveRateAndProceed()">अघि बढ्नुहोस् (Proceed)</button>
-    </div>
+  <div class="modal-content" style="max-width:400px; text-align:center;">
+    <span class="close" onclick="closeRateModal()">&times;</span>
+    <h3 style="color:#003366;">Exchange Rate Required</h3>
+    <p style="font-size:14px; color:#4f5d75;">कृपया यस महिनाको लायन्स एक्सचेन्ज रेट ($1 = NPR) राख्नुहोस्:</p>
+    <input type="number" id="tempDollarRate" value="135" style="text-align:center; font-size:24px; font-weight:bold; color:#e74c3c;">
+    <button class="primary-btn" onclick="saveRateAndProceed()">अघि बढ्नुहोस् (Proceed)</button>
+  </div>
 </div>
 
 <div id="detailsModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeDetailsModal()">&times;</span>
-        <h2 id="mClubName" style="color:#003366; margin-top:0; font-weight: 700;">Club Details</h2>
-        <p style="font-size: 14px; color: #555;"><b>Lion ID:</b> <span id="mLionId"></span> | <b>Type:</b> <span id="mClubType"></span></p>
-        <p style="font-size: 14px; color: #555;"><b>Active Members:</b> <span id="mActiveCount"></span> | <b>New Members:</b> <span id="mNewCount"></span></p>
-        
-        <fieldset style="border: 1px solid #e1e8ed; padding: 15px 20px; border-radius: 8px; background: #fafbfc; margin-top: 15px;">
-            <legend style="color: #003366; font-weight: 600; padding: 0 5px;">Dues Breakdown (NPR)</legend>
-            <p style="font-size: 14.5px;">International Dues: $<span id="mIntlUsd"></span> × <span id="mCurrentRate"></span> = <b>रु. <span id="mIntlNpr"></span></b> (<span id="mIntlStatus"></span>)</p>
-            <p style="font-size: 14.5px;">District Dues (<span id="mDistrictCalc"></span> × 1265): <b>रु. <span id="mDistrictNpr"></span></b> (<span id="mDistrictStatus"></span>)</p>
-            <p style="font-size: 14.5px;">New Member Entrance (<span id="mNewCalc"></span> × 100): <b>रु. <span id="mNewNpr"></span></b></p>
-            <hr style="border: 0; border-top: 1px solid #e1e8ed; margin: 12px 0;">
-            <h3 style="margin: 5px 0 0 0; text-align:left; color: #2c3e50; font-size: 18px;">Total Due Amount: रु. <span id="mTotalNpr"></span></h3>
-        </fieldset>
+  <div class="modal-content">
+    <span class="close" onclick="closeDetailsModal()">&times;</span>
 
-        <div id="paymentSection" style="margin-top: 20px;">
-            <h3 style="color: #003366; font-size: 16px; margin-bottom: 8px;">Pay Online (QR Code)</h3>
-            <p style="font-size:14.5px; color: #2c3e50; margin-bottom:12px; font-weight: 700;">कुन शीर्षकको रकम तिर्न लाग्नुभएको हो टिक लगाउनुहोस्:</p>
-            
-            <div class="checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="chkIntl" checked onchange="recalcTotalToPay()">
-                    <span>International Dues</span>
-                </label>
-                <label class="checkbox-label">
-                    <input type="checkbox" id="chkDist" checked onchange="recalcTotalToPay()">
-                    <span>District Dues</span>
-                </label>
-            </div>
-            
-            <h4 style="color:#e74c3c; font-size: 17px; margin: 10px 0;">कुल तिर्नुपर्ने रकम: रु. <span id="payAmountText">0</span></h4>
-            
-            <div style="text-align:center; margin: 15px 0; background: #f8f9fa; padding: 10px; border-radius: 6px;">
-                <img src="qr.jpg" class="qr-thumb" alt="Payment QR Code" onclick="openLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250?text=QR+Not+Found'">
-                <p style="font-size: 11px; color: #7f8c8d; margin: 5px 0 0 0;">(क्युआर कोड ठूलो बनाएर हेर्न यहाँ क्लिक गर्नुहोस्)</p>
-            </div>
+    <h2 id="mClubName" style="color:#003366; margin-top:0;">Club Details</h2>
+    <p><b>Lion ID:</b> <span id="mLionId"></span> | <b>Type:</b> <span id="mClubType"></span></p>
+    <p><b>Active Members:</b> <span id="mActiveCount"></span> | <b>New Members:</b> <span id="mNewCount"></span></p>
 
-            <label style="font-size: 14px; font-weight: 600; color: #2c3e50; display: block; margin-bottom: 8px;">१. भुक्तानी गरेको बैंक रसिद वा स्क्रिनसट अपलोड गर्नुहोस् (भौचर फोटो):</label>
-            <input type="file" id="userFileAccept" accept="image/*" style="border: 1px dashed #ccc; padding: 10px; background: #fafbfc;">
-            
-            <button class="primary-btn" style="margin-top:20px; background-color:#2ecc71; padding: 12px; font-size: 16px;" onclick="submitUserPayment()">Submit Payment Report</button>
-        </div>
+    <fieldset style="border:1px solid #e1e8ed; padding:15px 20px; border-radius:8px; background:#fafbfc;">
+      <legend style="color:#003366; font-weight:600;">Dues Breakdown (NPR)</legend>
+      <p>International Dues: $<span id="mIntlUsd"></span> × <span id="mCurrentRate"></span> = <b>रु. <span id="mIntlNpr"></span></b> (<span id="mIntlStatus"></span>)</p>
+      <p>District Dues (<span id="mDistrictCalc"></span> × 1265): <b>रु. <span id="mDistrictNpr"></span></b> (<span id="mDistrictStatus"></span>)</p>
+      <p>New Member Entrance (<span id="mNewCalc"></span> × 100): <b>रु. <span id="mNewNpr"></span></b></p>
+      <hr>
+      <h3>Total Due Amount: रु. <span id="mTotalNpr"></span></h3>
+    </fieldset>
+
+    <div id="paymentSection" style="margin-top:20px;">
+      <h3 style="color:#003366;">Pay Online (QR Code)</h3>
+      <p style="font-weight:700;">कुन शीर्षकको रकम तिर्न लाग्नुभएको हो टिक लगाउनुहोस्:</p>
+
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="chkIntl" checked onchange="recalcTotalToPay()">
+          <span>International Dues</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="chkDist" checked onchange="recalcTotalToPay()">
+          <span>District Dues</span>
+        </label>
+      </div>
+
+      <h4 style="color:#e74c3c;">कुल तिर्नुपर्ने रकम: रु. <span id="payAmountText">0</span></h4>
+
+      <div style="text-align:center; margin:15px 0; background:#f8f9fa; padding:10px; border-radius:6px;">
+        <img src="qr.jpg" class="qr-thumb" alt="Payment QR Code" onclick="openLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250?text=QR+Not+Found'">
+        <p style="font-size:11px; color:#7f8c8d;">(क्युआर कोड ठूलो बनाएर हेर्न यहाँ क्लिक गर्नुहोस्)</p>
+      </div>
+
+      <label style="font-size:14px; font-weight:600;">१. भुक्तानी गरेको बैंक रसिद वा स्क्रिनसट अपलोड गर्नुहोस्:</label>
+      <input type="file" id="userFileAccept" accept="image/*" style="border:1px dashed #ccc; padding:10px; background:#fafbfc;">
+
+      <button id="submitPaymentBtn" class="primary-btn" style="margin-top:20px; background:#2ecc71; font-size:16px;" onclick="submitUserPayment()">Submit Payment Report</button>
     </div>
+  </div>
 </div>
 
 <div id="qrLightbox" class="lightbox" onclick="closeLightbox()">
-    <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
-    <img id="lightboxImg" src="" alt="Zoomed QR">
+  <span style="position:absolute; top:20px; right:30px; color:white; font-size:40px; font-weight:bold; cursor:pointer;">&times;</span>
+  <img id="lightboxImg" src="" alt="Zoomed QR">
 </div>
 
 <div id="adminModal" class="modal">
-    <div class="modal-content" style="max-width:600px;">
-        <span class="close" onclick="closeAdminModal()">&times;</span>
-        
-        <div id="loginBox" class="search-container" style="margin-top:15px;">
-            <h3 style="margin-top:0; color: #003366;">Secure Admin Login</h3>
-            <input type="text" id="adminUser" placeholder="Username">
-            <input type="password" id="adminPass" placeholder="Password">
-            <button class="primary-btn" onclick="checkAdminLogin()">Login as Admin</button>
-        </div>
+  <div class="modal-content" style="max-width:600px;">
+    <span class="close" onclick="closeAdminModal()">&times;</span>
 
-        <div class="admin-dashboard-view" id="adminDashboard">
-            <h2 style="color:#003366; margin-top:0; font-weight: 700;">Admin Dashboard</h2>
-            <label><b>क्लब छान्नुहोस् (Select Club to Edit):</b></label>
-            <select id="adminClubSelect" onchange="loadClubToAdminForm()">
-                <option value="">-- Select a Club --</option>
-            </select>
-
-            <div id="adminForm" style="display:none; margin-top:15px; border-top:1px solid #e1e8ed; padding-top:15px;">
-                <p><b>Lion ID:</b> <span id="admLionId"></span></p>
-                <label>Club Name:</label><input type="text" id="admClubName">
-                <label>Active Member Count:</label><input type="number" id="admActiveMembers">
-                <label>New Member Count:</label><input type="number" id="admNewMembers">
-                <label>International Dues (USD):</label><input type="number" id="admIntlDues">
-                <label>WhatsApp Number:</label><input type="text" id="admWhatsApp">
-                
-                <p id="receiptViewRow" style="display:none;"><b>Submitted Voucher:</b> <a id="admReceiptLink" href="#" target="_blank" style="color:#003366; font-weight:bold; text-decoration:underline;">View Uploaded Voucher ↗</a></p>
-
-                <label>International Payment Status:</label>
-                <select id="admIntlStatus">
-                    <option value="Unpaid">Unpaid</option>
-                    <option value="Pending Verification">Pending Verification</option>
-                    <option value="Paid">Paid</option>
-                </select>
-                
-                <label>District Payment Status:</label>
-                <select id="admDistrictStatus">
-                    <option value="Unpaid">Unpaid</option>
-                    <option value="Pending Verification">Pending Verification</option>
-                    <option value="Paid">Paid</option>
-                </select>
-                
-                <div class="admin-action-row">
-                    <button class="primary-btn" style="background-color: #2ecc71; flex: 2;" onclick="submitAdminUpdate()">Save & Update Sheet</button>
-                    <button class="primary-btn" style="background-color: #e67e22; flex: 1;" onclick="sendAdminDuesReminder()">🔔 Send Reminder</button>
-                </div>
-            </div>
-        </div>
+    <div id="loginBox" class="search-container">
+      <h3 style="margin-top:0; color:#003366;">Secure Admin Login</h3>
+      <input type="text" id="adminUser" placeholder="Username">
+      <input type="password" id="adminPass" placeholder="Password">
+      <button id="adminLoginBtn" class="primary-btn" onclick="checkAdminLogin()">Login as Admin</button>
     </div>
+
+    <div class="admin-dashboard-view" id="adminDashboard">
+      <h2 style="color:#003366; margin-top:0;">Admin Dashboard</h2>
+
+      <label><b>क्लब छान्नुहोस् (Select Club to Edit):</b></label>
+      <select id="adminClubSelect" onchange="loadClubToAdminForm()">
+        <option value="">-- Select a Club --</option>
+      </select>
+
+      <div id="adminForm" style="display:none; margin-top:15px; border-top:1px solid #e1e8ed; padding-top:15px;">
+        <p><b>Lion ID:</b> <span id="admLionId"></span></p>
+
+        <label>Club Name:</label>
+        <input type="text" id="admClubName">
+
+        <label>Active Member Count:</label>
+        <input type="number" id="admActiveMembers">
+
+        <label>New Member Count:</label>
+        <input type="number" id="admNewMembers">
+
+        <label>International Dues (USD):</label>
+        <input type="number" id="admIntlDues">
+
+        <label>WhatsApp Number:</label>
+        <input type="text" id="admWhatsApp">
+
+        <p id="receiptViewRow" style="display:none;">
+          <b>Submitted Voucher:</b>
+          <a id="admReceiptLink" href="#" target="_blank" style="color:#003366; font-weight:bold;">View Uploaded Voucher ↗</a>
+        </p>
+
+        <label>International Payment Status:</label>
+        <select id="admIntlStatus">
+          <option value="Unpaid">Unpaid</option>
+          <option value="Pending Verification">Pending Verification</option>
+          <option value="Paid">Paid</option>
+        </select>
+
+        <label>District Payment Status:</label>
+        <select id="admDistrictStatus">
+          <option value="Unpaid">Unpaid</option>
+          <option value="Pending Verification">Pending Verification</option>
+          <option value="Paid">Paid</option>
+        </select>
+
+        <div class="admin-action-row">
+          <button id="adminSaveBtn" class="primary-btn" style="background:#2ecc71; flex:2;" onclick="submitAdminUpdate()">Save & Update Sheet</button>
+          <button class="primary-btn" style="background:#e67e22; flex:1;" onclick="sendAdminDuesReminder()">🔔 Send Reminder</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2Aty2uZ_e6fzEossHSUTyDgpTNwUr3xcEKxTIA_ek8VgleWxiFwwCpB28jEOcE4c_/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2Aty2uZ_e6fzEossHSUTyDgpTNwUr3xcEKxTIA_ek8VgleWxiFwwCpB28jEOcE4c_/exec";
 
-    let globalClubs = [];
-    let selectedClubForUser = null;
-    let chosenDollarRate = 135;
-    
-    // एड्मिनले चेन्ज गर्नु अघिको पुरानो स्टाटस ट्र्याक गर्न दुईवटा भ्यारियबल
-    let oldIntlStatus = "";
-    let oldDistrictStatus = "";
+let globalClubs = [];
+let selectedClubForUser = null;
+let chosenDollarRate = 135;
+let oldIntlStatus = "";
+let oldDistrictStatus = "";
 
-    function openLightbox(src) {
-        document.getElementById('lightboxImg').src = src;
-        document.getElementById('qrLightbox').style.display = 'flex';
-    }
-    function closeLightbox() {
-        document.getElementById('qrLightbox').style.display = 'none';
-    }
+function setBtnLoading(btnId, loadingText, normalText, isLoading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = isLoading;
+  btn.innerText = isLoading ? loadingText : normalText;
+}
 
-    async function loadData() {
-        try {
-            let res = await fetch(SCRIPT_URL);
-            globalClubs = await res.json();
-            renderTable();
-            populateAdminDropdown();
-        } catch (err) {
-            alert("गुगल सिटबाट डाटा लोड हुन सकेन।");
-        }
-    }
+async function postData(payload) {
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+  return await res.json();
+}
 
-    function renderTable() {
-        const search = document.getElementById('searchInp').value.toLowerCase();
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = "";
+function openLightbox(src) {
+  document.getElementById("lightboxImg").src = src;
+  document.getElementById("qrLightbox").style.display = "flex";
+}
 
-        let filtered = globalClubs.filter(row => 
-            row["Club Name"].toLowerCase().includes(search) || 
-            row["Lion ID"].toString().includes(search)
-        );
+function closeLightbox() {
+  document.getElementById("qrLightbox").style.display = "none";
+}
 
-        if(filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">कुनै क्लब भेटिएन।</td></tr>`;
-            return;
-        }
+async function loadData() {
+  try {
+    const res = await fetch(SCRIPT_URL);
+    globalClubs = await res.json();
+    renderTable();
+    populateAdminDropdown();
+  } catch (err) {
+    document.getElementById("tableBody").innerHTML =
+      `<tr><td colspan="4" style="text-align:center;color:red;">गुगल सिटबाट डाटा लोड हुन सकेन।</td></tr>`;
+  }
+}
 
-        filtered.forEach(row => {
-            let tr = document.createElement('tr');
-            tr.onclick = () => triggerClubClick(row);
-            
-            let intlStatusStr = row["Payment Status"] || 'Unpaid';
-            let distStatusStr = row["District Payment Status"] || 'Unpaid';
+function renderTable() {
+  const search = document.getElementById("searchInp").value.toLowerCase();
+  const tbody = document.getElementById("tableBody");
+  tbody.innerHTML = "";
 
-            let intlBadge = `<span class="badge ${intlStatusStr === 'Paid' ? 'badge-paid' : (intlStatusStr === 'Pending Verification' ? 'badge-pending' : 'badge-unpaid')}">${intlStatusStr}</span>`;
-            let distBadge = `<span class="badge ${distStatusStr === 'Paid' ? 'badge-paid' : (distStatusStr === 'Pending Verification' ? 'badge-pending' : 'badge-unpaid')}">${distStatusStr}</span>`;
+  const filtered = globalClubs.filter(row =>
+    String(row["Club Name"] || "").toLowerCase().includes(search) ||
+    String(row["Lion ID"] || "").includes(search)
+  );
 
-            tr.innerHTML = `<td><b>${row["Club Name"]}</b></td><td>${row["Lion ID"]}</td><td>${intlBadge}</td><td>${distBadge}</td>`;
-            tbody.appendChild(tr);
-        });
-    }
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">कुनै क्लब भेटिएन।</td></tr>`;
+    return;
+  }
 
-    function triggerClubClick(club) {
-        selectedClubForUser = club;
-        document.getElementById('rateModal').style.display = 'block';
-    }
+  filtered.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.onclick = () => triggerClubClick(row);
 
-    function closeRateModal() { document.getElementById('rateModal').style.display = 'none'; }
+    const intlStatusStr = row["Payment Status"] || "Unpaid";
+    const distStatusStr = row["District Payment Status"] || "Unpaid";
 
-    function saveRateAndProceed() {
-        chosenDollarRate = parseFloat(document.getElementById('tempDollarRate').value) || 135;
-        closeRateModal();
-        openDetailsModal();
-    }
+    const intlBadge = `<span class="badge ${intlStatusStr === "Paid" ? "badge-paid" : (intlStatusStr === "Pending Verification" ? "badge-pending" : "badge-unpaid")}">${intlStatusStr}</span>`;
+    const distBadge = `<span class="badge ${distStatusStr === "Paid" ? "badge-paid" : (distStatusStr === "Pending Verification" ? "badge-pending" : "badge-unpaid")}">${distStatusStr}</span>`;
 
-    function openDetailsModal() {
-        let club = selectedClubForUser;
-        
-        document.getElementById('mClubName').innerText = club["Club Name"];
-        document.getElementById('mLionId').innerText = club["Lion ID"];
-        document.getElementById('mClubType').innerText = club["Club Type"];
-        document.getElementById('mActiveCount').innerText = club["Active Member Count"];
-        document.getElementById('mNewCount').innerText = club["New Member"] || 0;
-        
-        let intlNpr = (parseFloat(club["International Due Amount"]) || 0) * chosenDollarRate;
-        let distNpr = (parseFloat(club["Active Member Count"]) || 0) * 1265;
-        let newNpr = (parseFloat(club["New Member"]) || 0) * 100;
-        let total = intlNpr + distNpr + newNpr;
+    tr.innerHTML = `
+      <td><b>${row["Club Name"] || ""}</b></td>
+      <td>${row["Lion ID"] || ""}</td>
+      <td>${intlBadge}</td>
+      <td>${distBadge}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
-        document.getElementById('mIntlUsd').innerText = club["International Due Amount"];
-        document.getElementById('mCurrentRate').innerText = chosenDollarRate;
-        document.getElementById('mIntlNpr').innerText = intlNpr.toLocaleString();
-        document.getElementById('mIntlStatus').innerText = club["Payment Status"] || 'Unpaid';
-        
-        document.getElementById('mDistrictCalc').innerText = club["Active Member Count"];
-        document.getElementById('mDistrictNpr').innerText = distNpr.toLocaleString();
-        document.getElementById('mDistrictStatus').innerText = club["District Payment Status"] || 'Unpaid';
-        
-        document.getElementById('mNewCalc').innerText = club["New Member"] || 0;
-        document.getElementById('mNewNpr').innerText = newNpr.toLocaleString();
-        document.getElementById('mTotalNpr').innerText = total.toLocaleString();
+function triggerClubClick(club) {
+  selectedClubForUser = club;
+  document.getElementById("rateModal").style.display = "block";
+}
 
-        if(club["Payment Status"] === 'Paid' && club["District Payment Status"] === 'Paid') {
-            document.getElementById('paymentSection').style.display = 'none';
-        } else {
-            document.getElementById('paymentSection').style.display = 'block';
-            document.getElementById('chkIntl').checked = club["Payment Status"] !== 'Paid';
-            document.getElementById('chkDist').checked = club["District Payment Status"] !== 'Paid';
-            recalcTotalToPay();
-        }
-        document.getElementById('detailsModal').style.display = 'block';
-    }
+function closeRateModal() {
+  document.getElementById("rateModal").style.display = "none";
+}
 
-    function closeDetailsModal() { document.getElementById('detailsModal').style.display = 'none'; }
+function saveRateAndProceed() {
+  chosenDollarRate = parseFloat(document.getElementById("tempDollarRate").value) || 135;
+  closeRateModal();
+  openDetailsModal();
+}
 
-    function recalcTotalToPay() {
-        if(!selectedClubForUser) return;
-        let amt = 0;
-        if(document.getElementById('chkIntl').checked) {
-            amt += (parseFloat(selectedClubForUser["International Due Amount"]) || 0) * chosenDollarRate;
-        }
-        if(document.getElementById('chkDist').checked) {
-            amt += (parseFloat(selectedClubForUser["Active Member Count"]) || 0) * 1265;
-            amt += (parseFloat(selectedClubForUser["New Member"]) || 0) * 100;
-        }
-        document.getElementById('payAmountText').innerText = amt.toLocaleString();
-    }
+function openDetailsModal() {
+  const club = selectedClubForUser;
 
-    async function submitUserPayment() {
-        const fileInput = document.getElementById('userFileAccept');
-        
-        if(fileInput.files.length === 0) {
-            alert("कृपया बैंक रसिद वा स्क्रिनसट अनिवार्य अपलोड गर्नुहोस्।");
-            return;
-        }
+  document.getElementById("mClubName").innerText = club["Club Name"] || "";
+  document.getElementById("mLionId").innerText = club["Lion ID"] || "";
+  document.getElementById("mClubType").innerText = club["Club Type"] || "";
+  document.getElementById("mActiveCount").innerText = club["Active Member Count"] || 0;
+  document.getElementById("mNewCount").innerText = club["New Member"] || 0;
 
-        let chkIntl = document.getElementById('chkIntl').checked;
-        let chkDist = document.getElementById('chkDist').checked;
-        let selectedDuesText = "";
+  const intlNpr = (parseFloat(club["International Due Amount"]) || 0) * chosenDollarRate;
+  const distNpr = (parseFloat(club["Active Member Count"]) || 0) * 1265;
+  const newNpr = (parseFloat(club["New Member"]) || 0) * 100;
+  const total = intlNpr + distNpr + newNpr;
 
-        if (chkIntl && chkDist) {
-            selectedDuesText = "International Dues र District Dues";
-        } else if (chkIntl) {
-            selectedDuesText = "International Dues";
-        } else if (chkDist) {
-            selectedDuesText = "District Dues";
-        } else {
-            alert("कृपया कम्तीमा एउटा शीर्षक छान्नुहोस्।");
-            return;
-        }
+  document.getElementById("mIntlUsd").innerText = club["International Due Amount"] || 0;
+  document.getElementById("mCurrentRate").innerText = chosenDollarRate;
+  document.getElementById("mIntlNpr").innerText = intlNpr.toLocaleString();
+  document.getElementById("mIntlStatus").innerText = club["Payment Status"] || "Unpaid";
 
-        let file = fileInput.files[0];
-        let reader = new FileReader();
-        let timestampId = new Date().getTime();
-        
-        reader.onload = async function(e) {
-            let payload = {
-                actionType: "user_payment",
-                lionId: selectedClubForUser["Lion ID"],
-                transactionId: "VOUCHER_" + timestampId,
-                payInternational: chkIntl,
-                payDistrict: chkDist,
-                fileData: e.target.result,
-                fileName: selectedClubForUser["Club Name"].replace(/\s+/g, '_') + "_" + timestampId + "_Voucher.jpg",
-                fileMime: file.type
-            };
+  document.getElementById("mDistrictCalc").innerText = club["Active Member Count"] || 0;
+  document.getElementById("mDistrictNpr").innerText = distNpr.toLocaleString();
+  document.getElementById("mDistrictStatus").innerText = club["District Payment Status"] || "Unpaid";
 
-            let res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
-            let result = await res.json();
-            alert(result.message);
-            closeDetailsModal();
-            loadData();
+  document.getElementById("mNewCalc").innerText = club["New Member"] || 0;
+  document.getElementById("mNewNpr").innerText = newNpr.toLocaleString();
+  document.getElementById("mTotalNpr").innerText = total.toLocaleString();
 
-            let waNumber = "9779851030055";
-            let waMessage = `नमस्ते लायन कृष्ण ज्योती शाक्य ज्यू,\n\n${selectedClubForUser["Club Name"]} को ${selectedDuesText} को Dues भुक्तानी गरी भौचर यसै साथ पठाएको छु ।\n\n*नाम:* \n*सम्पर्क:* \n\nविवरण चेक गरी कृपया सिस्टममा अपडेट गरिदिनुहोला ।`;
-            
-            let encodedMsg = encodeURIComponent(waMessage);
-            window.open(`https://api.whatsapp.com/send?phone=${waNumber}&text=${encodedMsg}`, '_blank');
-        };
-        reader.readAsDataURL(file);
-    }
+  if (club["Payment Status"] === "Paid" && club["District Payment Status"] === "Paid") {
+    document.getElementById("paymentSection").style.display = "none";
+  } else {
+    document.getElementById("paymentSection").style.display = "block";
+    document.getElementById("chkIntl").checked = club["Payment Status"] !== "Paid";
+    document.getElementById("chkDist").checked = club["District Payment Status"] !== "Paid";
+    recalcTotalToPay();
+  }
 
-    function openAdminModal() { document.getElementById('adminModal').style.display = 'block'; }
-    function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
+  document.getElementById("detailsModal").style.display = "block";
+}
 
-    async function checkAdminLogin() {
-        let user = document.getElementById('adminUser').value.trim();
-        let pass = document.getElementById('adminPass').value.trim();
-        
-        let payload = { actionType: "admin_login", username: user, password: pass };
-        let res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
-        let result = await res.json();
-        
-        if(result.status === "success") {
-            document.getElementById('adminDashboard').style.display = 'block';
-            document.getElementById('loginBox').style.display = 'none';
-            alert("एड्मिन लगइन सफल भयो।");
-        } else {
-            alert(result.message);
-        }
-    }
+function closeDetailsModal() {
+  document.getElementById("detailsModal").style.display = "none";
+}
 
-    function populateAdminDropdown() {
-        let select = document.getElementById('adminClubSelect');
-        select.innerHTML = '<option value="">-- Select a Club --</option>';
-        globalClubs.forEach(club => {
-            let opt = document.createElement('option');
-            opt.value = club["Lion ID"];
-            opt.innerText = club["Club Name"];
-            select.appendChild(opt);
-        });
-    }
+function recalcTotalToPay() {
+  if (!selectedClubForUser) return;
 
-    function loadClubToAdminForm() {
-        let id = document.getElementById('adminClubSelect').value;
-        if(!id) { document.getElementById('adminForm').style.display = 'none'; return; }
-        
-        let club = globalClubs.find(c => c["Lion ID"].toString() === id.toString());
-        if(club) {
-            document.getElementById('admLionId').innerText = club["Lion ID"];
-            document.getElementById('admClubName').value = club["Club Name"];
-            document.getElementById('admActiveMembers').value = club["Active Member Count"];
-            document.getElementById('admNewMembers').value = club["New Member"] || 0;
-            document.getElementById('admIntlDues').value = club["International Due Amount"];
-            document.getElementById('admWhatsApp').value = club["WhatsApp Number"] || "";
-            
-            // लोड हुँदाको पुरानो स्टाटस सेभ गर्ने (कम्प्यारिजनका लागि)
-            oldIntlStatus = club["Payment Status"] || "Unpaid";
-            oldDistrictStatus = club["District Payment Status"] || "Unpaid";
+  let amt = 0;
 
-            document.getElementById('admIntlStatus').value = oldIntlStatus;
-            document.getElementById('admDistrictStatus').value = oldDistrictStatus;
-            
-            if(club["Receipt Link"]) {
-                document.getElementById('admReceiptLink').href = club["Receipt Link"];
-                document.getElementById('receiptViewRow').style.display = 'block';
-            } else {
-                document.getElementById('receiptViewRow').style.display = 'none';
-            }
-            
-            document.getElementById('adminForm').style.display = 'block';
-        }
-    }
+  if (document.getElementById("chkIntl").checked) {
+    amt += (parseFloat(selectedClubForUser["International Due Amount"]) || 0) * chosenDollarRate;
+  }
 
-    async function submitAdminUpdate() {
-        let id = document.getElementById('adminClubSelect').value;
-        let cName = document.getElementById('admClubName').value;
-        let targetPhone = document.getElementById('admWhatsApp').value.trim().replace(/[-+ \s]/g, "");
-        
-        // नयाँ सेट गरिएको स्टाटसहरू लिने
-        let newIntlStatus = document.getElementById('admIntlStatus').value;
-        let newDistrictStatus = document.getElementById('admDistrictStatus').value;
+  if (document.getElementById("chkDist").checked) {
+    amt += (parseFloat(selectedClubForUser["Active Member Count"]) || 0) * 1265;
+    amt += (parseFloat(selectedClubForUser["New Member"]) || 0) * 100;
+  }
 
-        let payload = {
-            actionType: "admin_edit",
-            lionId: id,
-            clubName: cName,
-            activeMembers: document.getElementById('admActiveMembers').value,
-            newMembers: document.getElementById('admNewMembers').value,
-            intlDues: document.getElementById('admIntlDues').value,
-            whatsappNumber: targetPhone,
-            intlStatus: newIntlStatus,
-            districtStatus: newDistrictStatus
-        };
+  document.getElementById("payAmountText").innerText = amt.toLocaleString();
+}
 
-        let res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
-        let result = await res.json();
+async function submitUserPayment() {
+  const fileInput = document.getElementById("userFileAccept");
+
+  if (fileInput.files.length === 0) {
+    alert("कृपया बैंक रसिद वा स्क्रिनसट अनिवार्य अपलोड गर्नुहोस्।");
+    return;
+  }
+
+  const chkIntl = document.getElementById("chkIntl").checked;
+  const chkDist = document.getElementById("chkDist").checked;
+
+  if (!chkIntl && !chkDist) {
+    alert("कृपया कम्तीमा एउटा शीर्षक छान्नुहोस्।");
+    return;
+  }
+
+  let selectedDuesText = "";
+  if (chkIntl && chkDist) selectedDuesText = "International Dues र District Dues";
+  else if (chkIntl) selectedDuesText = "International Dues";
+  else selectedDuesText = "District Dues";
+
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  const timestampId = new Date().getTime();
+
+  setBtnLoading("submitPaymentBtn", "⏳ Upload हुँदैछ...", "Submit Payment Report", true);
+
+  reader.onload = async function(e) {
+    try {
+      const payload = {
+        actionType: "user_payment",
+        lionId: selectedClubForUser["Lion ID"],
+        transactionId: "VOUCHER_" + timestampId,
+        payInternational: chkIntl,
+        payDistrict: chkDist,
+        fileData: e.target.result,
+        fileName: String(selectedClubForUser["Club Name"] || "Club").replace(/\s+/g, "_") + "_" + timestampId + "_Voucher.jpg",
+        fileMime: file.type || "image/jpeg"
+      };
+
+      const result = await postData(payload);
+
+      if (result.status === "success") {
         alert(result.message);
+        closeDetailsModal();
         loadData();
 
-        /* क्रिटिकल चेक: यदि इन्टरनेसनल वा डिस्ट्रिक्ट मध्ये कुनै पनि पेमेन्ट स्टाटस पहिलेको भन्दा 
-           परिवर्तन भएको छ भने मात्र व्हाट्सएप म्यासेज खोल्ने। अन्य डाटाहरू चेन्ज गर्दा खुल्दैन।
-        */
-        if (newIntlStatus !== oldIntlStatus || newDistrictStatus !== oldDistrictStatus) {
-            if(targetPhone) {
-                let updateMsg = `तपाईँको क्लब *${cName}* को दिवस (Dues) सिस्टममा अपडेट भयो। धन्यवाद!`;
-                let encodedUpdate = encodeURIComponent(updateMsg);
-                window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodedUpdate}`, '_blank');
-            }
-        }
+        const waNumber = "9779851030055";
+        const waMessage =
+          `नमस्ते लायन कृष्ण ज्योती शाक्य ज्यू,\n\n` +
+          `${selectedClubForUser["Club Name"]} को ${selectedDuesText} को Dues भुक्तानी गरी भौचर यसै साथ पठाएको छु ।\n\n` +
+          `*नाम:* \n*सम्पर्क:* \n\n` +
+          `विवरण चेक गरी कृपया सिस्टममा अपडेट गरिदिनुहोला ।`;
+
+        window.open(`https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(waMessage)}`, "_blank");
+      } else {
+        alert(result.message || "Upload failed भयो।");
+      }
+    } catch (err) {
+      alert("Upload error: " + err.toString());
+    } finally {
+      setBtnLoading("submitPaymentBtn", "⏳ Upload हुँदैछ...", "Submit Payment Report", false);
+    }
+  };
+
+  reader.onerror = function() {
+    alert("File read गर्न सकेन। कृपया अर्को फोटो upload गर्नुहोस्।");
+    setBtnLoading("submitPaymentBtn", "⏳ Upload हुँदैछ...", "Submit Payment Report", false);
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function openAdminModal() {
+  document.getElementById("adminModal").style.display = "block";
+}
+
+function closeAdminModal() {
+  document.getElementById("adminModal").style.display = "none";
+}
+
+async function checkAdminLogin() {
+  const user = document.getElementById("adminUser").value.trim();
+  const pass = document.getElementById("adminPass").value.trim();
+
+  if (!user || !pass) {
+    alert("Username र Password राख्नुहोस्।");
+    return;
+  }
+
+  setBtnLoading("adminLoginBtn", "⏳ Checking...", "Login as Admin", true);
+
+  try {
+    const result = await postData({
+      actionType: "admin_login",
+      username: user,
+      password: pass
+    });
+
+    if (result.status === "success") {
+      document.getElementById("adminDashboard").style.display = "block";
+      document.getElementById("loginBox").style.display = "none";
+      alert("एड्मिन लगइन सफल भयो।");
+    } else {
+      alert(result.message || "Login failed.");
+    }
+  } catch (err) {
+    alert("Login error: " + err.toString());
+  } finally {
+    setBtnLoading("adminLoginBtn", "⏳ Checking...", "Login as Admin", false);
+  }
+}
+
+function populateAdminDropdown() {
+  const select = document.getElementById("adminClubSelect");
+  select.innerHTML = '<option value="">-- Select a Club --</option>';
+
+  globalClubs.forEach(club => {
+    const opt = document.createElement("option");
+    opt.value = club["Lion ID"];
+    opt.innerText = club["Club Name"];
+    select.appendChild(opt);
+  });
+}
+
+function loadClubToAdminForm() {
+  const id = document.getElementById("adminClubSelect").value;
+
+  if (!id) {
+    document.getElementById("adminForm").style.display = "none";
+    return;
+  }
+
+  const club = globalClubs.find(c => String(c["Lion ID"]) === String(id));
+
+  if (club) {
+    document.getElementById("admLionId").innerText = club["Lion ID"];
+    document.getElementById("admClubName").value = club["Club Name"];
+    document.getElementById("admActiveMembers").value = club["Active Member Count"];
+    document.getElementById("admNewMembers").value = club["New Member"] || 0;
+    document.getElementById("admIntlDues").value = club["International Due Amount"];
+    document.getElementById("admWhatsApp").value = club["WhatsApp Number"] || "";
+
+    oldIntlStatus = club["Payment Status"] || "Unpaid";
+    oldDistrictStatus = club["District Payment Status"] || "Unpaid";
+
+    document.getElementById("admIntlStatus").value = oldIntlStatus;
+    document.getElementById("admDistrictStatus").value = oldDistrictStatus;
+
+    if (club["Receipt Link"]) {
+      document.getElementById("admReceiptLink").href = club["Receipt Link"];
+      document.getElementById("receiptViewRow").style.display = "block";
+    } else {
+      document.getElementById("receiptViewRow").style.display = "none";
     }
 
-    function sendAdminDuesReminder() {
-        let cName = document.getElementById('admClubName').value;
-        let targetPhone = document.getElementById('admWhatsApp').value.trim().replace(/[-+ \s]/g, "");
-        
-        if(!targetPhone) {
-            alert("यस क्लबको व्हाट्सएप नम्बर उपलब्ध छैन। कृपया पहिला नम्बर अपडेट गर्नुहोस्।");
-            return;
+    document.getElementById("adminForm").style.display = "block";
+  }
+}
+
+async function submitAdminUpdate() {
+  const id = document.getElementById("adminClubSelect").value;
+  const cName = document.getElementById("admClubName").value;
+  const targetPhone = document.getElementById("admWhatsApp").value.trim().replace(/[-+ \s]/g, "");
+
+  const newIntlStatus = document.getElementById("admIntlStatus").value;
+  const newDistrictStatus = document.getElementById("admDistrictStatus").value;
+
+  setBtnLoading("adminSaveBtn", "⏳ Saving...", "Save & Update Sheet", true);
+
+  try {
+    const payload = {
+      actionType: "admin_edit",
+      lionId: id,
+      clubName: cName,
+      activeMembers: document.getElementById("admActiveMembers").value,
+      newMembers: document.getElementById("admNewMembers").value,
+      intlDues: document.getElementById("admIntlDues").value,
+      whatsappNumber: targetPhone,
+      intlStatus: newIntlStatus,
+      districtStatus: newDistrictStatus
+    };
+
+    const result = await postData(payload);
+
+    if (result.status === "success") {
+      alert(result.message);
+      loadData();
+
+      if (newIntlStatus !== oldIntlStatus || newDistrictStatus !== oldDistrictStatus) {
+        if (targetPhone) {
+          const updateMsg = `तपाईँको क्लब *${cName}* को Dues सिस्टममा अपडेट भयो। धन्यवाद!`;
+          window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(updateMsg)}`, "_blank");
         }
-
-        let reminderMsg = `महत्वपूर्ण सूचना:\nतपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ। कृपया वित्तीय विवरण पोर्टलमा चेक गरी समयमै भुक्तानी गरिदिनुहोला। धन्यवाद!`;
-        let encodedReminder = encodeURIComponent(reminderMsg);
-        window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodedReminder}`, '_blank');
+      }
+    } else {
+      alert(result.message || "Update failed भयो।");
     }
+  } catch (err) {
+    alert("Admin update error: " + err.toString());
+  } finally {
+    setBtnLoading("adminSaveBtn", "⏳ Saving...", "Save & Update Sheet", false);
+  }
+}
 
-    window.onload = loadData;
+function sendAdminDuesReminder() {
+  const cName = document.getElementById("admClubName").value;
+  const targetPhone = document.getElementById("admWhatsApp").value.trim().replace(/[-+ \s]/g, "");
+
+  if (!targetPhone) {
+    alert("यस क्लबको व्हाट्सएप नम्बर उपलब्ध छैन। कृपया पहिला नम्बर अपडेट गर्नुहोस्।");
+    return;
+  }
+
+  const reminderMsg =
+    `महत्वपूर्ण सूचना:\n` +
+    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ। कृपया वित्तीय विवरण पोर्टलमा चेक गरी समयमै भुक्तानी गरिदिनुहोला। धन्यवाद!`;
+
+  window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(reminderMsg)}`, "_blank");
+}
+
+window.onload = loadData;
 </script>
+
 </body>
 </html>
