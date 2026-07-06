@@ -185,7 +185,7 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 
       <div style="text-align:center; margin:15px 0; background:#f8f9fa; padding:10px; border-radius:6px;">
         <img src="qr.jpg" class="qr-thumb" alt="Payment QR Code" onclick="openLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250?text=QR+Not+Found'">
-        <p style="font-size:11px; color:#7f8c8d;">(क्युआर कोड ठूलो बनाएर हेर्न यहाँ क्लिक गर्नुहोस्)</p>
+        <p style="font-size:11px; color:#7f8c8d;">( क्युआर कोड ठूलो बनाएर हेर्न यहाँ क्लिक गर्नुहोस् )</p>
       </div>
 
       <label style="font-size:14px; font-weight:600;">१. भौचर पठाउने व्यक्तिको नाम:</label>
@@ -220,7 +220,7 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 
       <div class="payment-requests-panel" id="paymentRequestsPanel">
         <h3>📌 Pending Payment Requests <span class="auto-refresh-badge">Auto refresh: 5 sec</span></h3>
-        <p class="request-note">कुन क्लबले payment विवरण पठाएको छ भन्ने request यहाँ देखिन्छ। Approve गरेपछि Pending Verification बाट Paid हुन्छ।</p>
+        <p class="request-note">कुन क्लबले payment विवरण पठाएको छ भन्ने request यहाँ देखिन्छ । Approve गरेपछि Pending Verification बाट Paid हुन्छ ।</p>
         <div class="requests-table-wrap">
           <table class="requests-table">
             <thead>
@@ -235,7 +235,7 @@ tr:hover { background:#edf2f7; cursor:pointer; }
               </tr>
             </thead>
             <tbody id="paymentRequestsBody">
-              <tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन।</td></tr>
+              <tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन ।</td></tr>
             </tbody>
           </table>
         </div>
@@ -245,7 +245,7 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 
       <div class="add-club-panel" id="addNewClubPanel">
         <h3>➕ Add New Club</h3>
-        <p class="request-note">नयाँ क्लब थप्दा क्लब नाम automatic CAPITAL मा बस्छ। International Dues active billing period अनुसार Paid हुन्छ, District Dues Unpaid रहन्छ।</p>
+        <p class="request-note">नयाँ क्लब थप्दा क्लब नाम automatic CAPITAL मा बस्छ । International Dues active billing period अनुसार Paid हुन्छ, District Dues Unpaid रहन्छ ।</p>
         <button type="button" class="toggle-add-btn" onclick="toggleAddClubForm()">➕ नयाँ क्लब थप्ने Form खोल्नुहोस् / बन्द गर्नुहोस्</button>
         <div id="addClubFormBox" style="display:none; margin-top:12px;">
           <div class="add-club-grid">
@@ -462,7 +462,7 @@ function renderTable() {
   );
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">कुनै क्लब भेटिएन।</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">कुनै क्लब भेटिएन ।</td></tr>`;
     return;
   }
 
@@ -559,8 +559,8 @@ function openDetailsModal() {
   }
 
   const notes = [];
-  if (!intlPayable) notes.push("International Dues: " + intlStatus + " भएकाले फेरि submit गर्न मिल्दैन।");
-  if (!distPayable) notes.push("District Dues: " + districtStatus + " भएकाले फेरि submit गर्न मिल्दैन।");
+  if (!intlPayable) notes.push("International Dues: " + intlStatus + " भएकाले फेरि submit गर्न मिल्दैन ।");
+  if (!distPayable) notes.push("District Dues: " + districtStatus + " भएकाले फेरि submit गर्न मिल्दैन ।");
   lockMsg.innerHTML = notes.length ? notes.join("<br>") : "";
   lockMsg.style.display = notes.length ? "block" : "none";
 
@@ -603,14 +603,14 @@ async function submitUserPayment() {
   const chkDist = chkDistEl.checked && !chkDistEl.disabled;
 
   if (!chkIntl && !chkDist) {
-    alert("यो क्लबको चयन गरिएको dues Paid वा Pending Verification मा छ। फेरि submit गर्न मिल्दैन।");
+    alert("यो क्लबको चयन गरिएको dues Paid वा Pending Verification मा छ । फेरि submit गर्न मिल्दैन ।");
     return;
   }
 
   const intlStatus = getStatusValue(selectedClubForUser["Payment Status"]);
   const distStatus = getStatusValue(selectedClubForUser["District Payment Status"]);
-  if (chkIntl && intlStatus !== "Unpaid") { alert("International Dues पहिले नै " + intlStatus + " छ।"); return; }
-  if (chkDist && distStatus !== "Unpaid") { alert("District Dues पहिले नै " + distStatus + " छ।"); return; }
+  if (chkIntl && intlStatus !== "Unpaid") { alert("International Dues पहिले नै " + intlStatus + " छ ।"); return; }
+  if (chkDist && distStatus !== "Unpaid") { alert("District Dues पहिले नै " + distStatus + " छ ।"); return; }
 
   let selectedDuesText = "";
   if (chkIntl && chkDist) selectedDuesText = "International Dues र District Dues";
@@ -618,12 +618,12 @@ async function submitUserPayment() {
   else selectedDuesText = "District Dues";
 
   const payAmount = document.getElementById("payAmountText").innerText || "0";
-  setBtnLoading("submitPaymentBtn", "⏳ Sheet अपडेट हुँदैछ...", "WhatsApp मा विवरण पठाउनुहोस्", true);
+  setBtnLoading("submitPaymentBtn", "⏳ Database अपडेट हुँदैछ...", "WhatsApp मा विवरण पठाउनुहोस्", true);
 
   let reservedWhatsAppWindow = null;
   try {
     reservedWhatsAppWindow = window.open("", "_blank");
-    if (reservedWhatsAppWindow) reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>पहिले Google Sheet अपडेट हुँदैछ... त्यसपछि WhatsApp खुल्छ।</p>");
+    if (reservedWhatsAppWindow) reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>पहिले Database अपडेट हुँदैछ... त्यसपछि WhatsApp खुल्छ ।</p>");
   } catch (e) { reservedWhatsAppWindow = null; }
 
   try {
@@ -642,7 +642,7 @@ async function submitUserPayment() {
     const result = await postData(payload);
     if (result.status !== "success") {
       if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
-      alert(result.message || "Google Sheet update failed भयो।");
+      alert(result.message || "Database update failed भयो ।");
       return;
     }
 
@@ -656,9 +656,9 @@ async function submitUserPayment() {
       `भौचर पठाउने व्यक्तिको विवरण:\n` +
       `*नाम:* ${senderName}\n` +
       `*सम्पर्क नम्बर:* ${senderPhone}\n\n` +
-      `मैले भुक्तानी भौचर WhatsApp मार्फत पठाएको/पठाउँदैछु । Google Sheet मा Pending Verification राखिएको छ। कृपया विवरण चेक गरी Admin बाट Approve गरिदिनुहोला ।\n\nलायन कृष्ण ज्योती शाक्य\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
+      `मैले भुक्तानी भौचर WhatsApp मार्फत पठाएको/पठाउँदैछु । System मा Pending Verification छ । कृपया विवरण चेक गरी मेरो क्लबको भुक्तानी Approve गरिदिनुहोला ।`;
 
-    alert(result.message || "Sheet update भयो। अब WhatsApp खुल्छ।");
+    alert(result.message || "Database update भयो । अब WhatsApp खुल्छ ।");
     closeDetailsModal();
     await loadData({ silent: true });
     openWhatsAppReliable(buildWhatsAppUrl(waNumber, waMessage), reservedWhatsAppWindow);
@@ -666,7 +666,7 @@ async function submitUserPayment() {
     if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
     alert("Submit error: " + err.toString());
   } finally {
-    setBtnLoading("submitPaymentBtn", "⏳ Sheet अपडेट हुँदैछ...", "WhatsApp मा विवरण पठाउनुहोस्", false);
+    setBtnLoading("submitPaymentBtn", "⏳ Database अपडेट हुँदैछ...", "WhatsApp मा विवरण पठाउनुहोस्", false);
   }
 }
 
@@ -684,7 +684,7 @@ async function checkAdminLogin() {
   const pass = document.getElementById("adminPass").value.trim();
 
   if (!user || !pass) {
-    alert("Username र Password राख्नुहोस्।");
+    alert("Username र Password राख्नुहोस् ।");
     return;
   }
 
@@ -703,7 +703,7 @@ async function checkAdminLogin() {
       adminLoggedIn = true;
       renderPaymentRequests();
       startAdminAutoRefresh();
-      alert(result.message || "एड्मिन लगइन सफल भयो।");
+      alert(result.message || "एड्मिन लगइन सफल भयो ।");
     } else {
       alert(result.message || "Login failed.");
     }
@@ -777,7 +777,7 @@ async function submitAdminUpdate() {
     try {
       reservedWhatsAppWindow = window.open("", "_blank");
       if (reservedWhatsAppWindow) {
-        reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>WhatsApp खोलिँदैछ... कृपया पर्खनुहोस्।</p>");
+        reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>WhatsApp खोलिँदैछ... कृपया पर्खनुहोस् ।</p>");
       }
     } catch (e) {
       reservedWhatsAppWindow = null;
@@ -812,7 +812,7 @@ async function submitAdminUpdate() {
       }
     } else {
       if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
-      alert(result.message || "Update failed भयो।");
+      alert(result.message || "Update failed भयो ।");
     }
   } catch (err) {
     if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
@@ -839,7 +839,7 @@ function renderPaymentRequests() {
   tbody.innerHTML = "";
 
   if (requests.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन।</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन ।</td></tr>`;
     return;
   }
 
@@ -878,7 +878,7 @@ async function approvePaymentRequest(lionId) {
     return;
   }
 
-  const ok = confirm(`${club["Club Name"]} को pending payment approve गर्ने हो?`);
+  const ok = confirm(`${club["Club Name"]} को pending payment approve गर्ने हो ?`);
   if (!ok) return;
 
   try {
@@ -888,10 +888,10 @@ async function approvePaymentRequest(lionId) {
     });
 
     if (result.status === "success") {
-      alert(result.message || "Payment Approved भयो।");
+      alert(result.message || "Payment Approved भयो ।");
       await loadData({ silent: true });
     } else {
-      alert(result.message || "Approve failed भयो।");
+      alert(result.message || "Approve failed भयो ।");
     }
   } catch (err) {
     alert("Approve error: " + err.toString());
@@ -984,15 +984,15 @@ async function submitAddNewClub() {
   const submittedBy = document.getElementById("newSubmittedBy").value.trim();
   const contactNumber = document.getElementById("newContactNumber").value.trim();
 
-  if (!clubName) { alert("Club Name राख्नुहोस्।"); return; }
-  if (!lionId) { alert("Lion ID राख्नुहोस्।"); return; }
-  if (!clubType) { alert("Club Type राख्नुहोस्।"); return; }
-  if (!activeMembers) { alert("Active Member Count राख्नुहोस्।"); return; }
-  if (!intlDues) { alert("International Dues Amount राख्नुहोस्।"); return; }
-  if (!districtDues) { alert("District Dues Amount राख्नुहोस्।"); return; }
-  if (!whatsappNumber) { alert("WhatsApp Number राख्नुहोस्।"); return; }
+  if (!clubName) { alert("Club Name राख्नुहोस् ।"); return; }
+  if (!lionId) { alert("Lion ID राख्नुहोस् ।"); return; }
+  if (!clubType) { alert("Club Type राख्नुहोस् ।"); return; }
+  if (!activeMembers) { alert("Active Member Count राख्नुहोस् ।"); return; }
+  if (!intlDues) { alert("International Dues Amount राख्नुहोस् ।"); return; }
+  if (!districtDues) { alert("District Dues Amount राख्नुहोस् ।"); return; }
+  if (!whatsappNumber) { alert("WhatsApp Number राख्नुहोस् ।"); return; }
 
-  const ok = confirm(clubName + " नयाँ क्लब थप्ने हो? International Dues Paid र District Dues Unpaid राखिन्छ।");
+  const ok = confirm(clubName + " नयाँ क्लब थप्ने हो ? International Dues Paid र District Dues Unpaid राखिन्छ ।");
   if (!ok) return;
 
   setBtnLoading("addClubBtn", "⏳ Adding...", "Add New Club", true);
@@ -1011,13 +1011,13 @@ async function submitAddNewClub() {
     });
 
     if (result.status === "success") {
-      alert(result.message || "नयाँ क्लब थपियो।");
+      alert(result.message || "नयाँ क्लब थपियो ।");
       clearAddClubForm();
       await loadData({ silent: true });
       renderPaymentRequests();
       renderAdminReport();
     } else {
-      alert(result.message || "नयाँ क्लब थप्न सकेन।");
+      alert(result.message || "नयाँ क्लब थप्न सकेन ।");
     }
   } catch (err) {
     alert("Add Club error: " + err.toString());
@@ -1049,8 +1049,8 @@ function buildWhatsAppUrl(phone, message) {
 }
 
 function openWhatsAppReliable(waUrl, reservedWindow) {
-  // Submit click कै समयमा खोलिएको blank tab/window लाई पछि WhatsApp URL दिने हो।
-  // यसले mobile/browser popup block समस्या हटाउँछ।
+  // Submit click कै समयमा खोलिएको blank tab/window लाई पछि WhatsApp URL दिने हो ।
+  // यसले mobile/browser popup block समस्या हटाउँछ ।
   try {
     if (reservedWindow && !reservedWindow.closed) {
       reservedWindow.location.href = waUrl;
