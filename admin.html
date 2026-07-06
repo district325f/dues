@@ -75,6 +75,22 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 .report-controls { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; align-items:end; }
 .report-table-wrap { overflow-x:auto; margin-top:10px; }
 .report-table th, .report-table td { font-size:13px; padding:9px 8px; }
+.dashboard-summary-panel { margin-bottom:20px; padding:15px; background:#eef8ff; border:2px solid #3498db; border-radius:8px; }
+.dashboard-summary-panel h3 { margin:0 0 10px 0; color:#003366; }
+.summary-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
+.summary-card { background:white; border:1px solid #dce9f7; border-radius:8px; padding:12px; text-align:center; }
+.summary-card .num { font-size:22px; font-weight:800; color:#003366; margin-top:4px; }
+.summary-card .label { font-size:12px; color:#4f5d75; font-weight:700; }
+.collection-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:10px; }
+.admin-search-box { margin:12px 0; padding:12px; background:#f7fbff; border:1px solid #dce9f7; border-radius:8px; }
+.audit-log-panel { margin-bottom:20px; padding:15px; background:#fff7fb; border:2px solid #c0392b; border-radius:8px; }
+.audit-log-panel h3 { margin:0 0 10px 0; color:#003366; }
+.audit-table-wrap { overflow-x:auto; margin-top:10px; }
+.audit-table th, .audit-table td { font-size:12.5px; padding:8px 7px; }
+@media(max-width:700px){
+  .summary-grid, .collection-grid { grid-template-columns:1fr; }
+}
+
 @media(max-width:700px){ .report-controls { grid-template-columns:1fr; } }
 
 .add-club-panel { margin-bottom:20px; padding:15px; background:#fffaf0; border:2px solid #D4AF37; border-radius:8px; }
@@ -136,6 +152,26 @@ body { margin:0; }
     <div class="admin-section-title">
       <h2 style="color:#003366; margin-top:0;">Admin Dashboard</h2>
       <span class="auto-refresh-note">Auto refresh 5 sec — Edit/Add form खुल्दा pause हुन्छ</span>
+    </div>
+
+    <div class="dashboard-summary-panel" id="dashboardSummaryPanel">
+      <h3>📊 Dashboard Summary</h3>
+      <div class="summary-grid">
+        <div class="summary-card"><div class="label">Paid Clubs</div><div class="num" id="sumPaidClubs">0</div></div>
+        <div class="summary-card"><div class="label">Pending</div><div class="num" id="sumPendingClubs">0</div></div>
+        <div class="summary-card"><div class="label">Unpaid</div><div class="num" id="sumUnpaidClubs">0</div></div>
+        <div class="summary-card"><div class="label">Total Clubs</div><div class="num" id="sumTotalClubs">0</div></div>
+      </div>
+      <div class="collection-grid">
+        <div class="summary-card"><div class="label">International Collection</div><div class="num" id="sumIntlCollection">रु. 0</div></div>
+        <div class="summary-card"><div class="label">District Collection</div><div class="num" id="sumDistrictCollection">रु. 0</div></div>
+        <div class="summary-card"><div class="label">Total Collection</div><div class="num" id="sumTotalCollection">रु. 0</div></div>
+      </div>
+      <div class="collection-grid">
+        <div class="summary-card"><div class="label">International Outstanding</div><div class="num" id="sumIntlOutstanding">रु. 0</div></div>
+        <div class="summary-card"><div class="label">District Outstanding</div><div class="num" id="sumDistrictOutstanding">रु. 0</div></div>
+        <div class="summary-card"><div class="label">Total Outstanding</div><div class="num" id="sumTotalOutstanding">रु. 0</div></div>
+      </div>
     </div>
 
     <div class="payment-requests-panel" id="paymentRequestsPanel">
@@ -216,6 +252,7 @@ let oldIntlStatus = "";
 let oldDistrictStatus = "";
 let adminLoggedIn = localStorage.getItem("duesAdminLoggedIn") === "yes";
 let adminAutoRefreshTimer = null;
+let auditLogs = [];
 
 function setBtnLoading(btnId, loadingText, normalText, isLoading) {
   const btn = document.getElementById(btnId);
@@ -238,10 +275,14 @@ async function loadData(options = {}) {
   try {
     const selected = document.getElementById("adminClubSelect") ? document.getElementById("adminClubSelect").value : "";
     const res = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
-    globalClubs = await res.json();
+    const data = await res.json();
+    globalClubs = Array.isArray(data) ? data : (data.clubs || []);
     populateAdminDropdown(selected);
+    filterAdminClubSearch();
     renderPaymentRequests();
     renderAdminReport();
+    renderDashboardSummary();
+    if (adminLoggedIn) loadAuditLogs(true);
   } catch (err) {
     if (!silent) alert("Data load error: " + err.toString());
   }
@@ -272,6 +313,7 @@ async function checkAdminLogin() {
 
     if (result.status === "success") {
       localStorage.setItem("duesAdminLoggedIn", "yes");
+      localStorage.setItem("duesAdminUser", user);
       adminLoggedIn = true;
       showDashboard();
       alert(result.message || "एड्मिन लगइन सफल भयो ।");
@@ -287,6 +329,7 @@ async function checkAdminLogin() {
 
 function logoutAdmin() {
   localStorage.removeItem("duesAdminLoggedIn");
+  localStorage.removeItem("duesAdminUser");
   adminLoggedIn = false;
   stopAdminAutoRefresh();
   window.location.href = "index.html";
@@ -331,6 +374,124 @@ function stopAdminAutoRefresh() {
 function getStatusValue(value) {
   const v = String(value || "").trim();
   return v || "Unpaid";
+}
+
+
+function getAdminUserName() {
+  return localStorage.getItem("duesAdminUser") || document.getElementById("adminUser")?.value || "Admin";
+}
+
+function numberValue(v) {
+  const n = parseFloat(String(v || "0").replace(/,/g, ""));
+  return isNaN(n) ? 0 : n;
+}
+
+function formatMoney(n) {
+  return "रु. " + Math.round(n || 0).toLocaleString();
+}
+
+function renderDashboardSummary() {
+  const total = globalClubs.length;
+  let paid = 0, pending = 0, unpaid = 0;
+  let intlCollection = 0, distCollection = 0, intlOutstanding = 0, distOutstanding = 0;
+
+  globalClubs.forEach(club => {
+    const intlStatus = getStatusValue(club["Payment Status"]);
+    const distStatus = getStatusValue(club["District Payment Status"]);
+    const intlAmountNpr = numberValue(club["International Due Amount"]) * 135;
+    const fallbackDist = (numberValue(club["Active Member Count"]) * 1265) + (numberValue(club["New Member"]) * 100);
+    const distAmount = numberValue(club["District Due Amount"]) || fallbackDist;
+
+    if (intlStatus === "Paid" && distStatus === "Paid") paid++;
+    else if (intlStatus === "Pending Verification" || distStatus === "Pending Verification") pending++;
+    else unpaid++;
+
+    if (intlStatus === "Paid") intlCollection += intlAmountNpr;
+    else intlOutstanding += intlAmountNpr;
+
+    if (distStatus === "Paid") distCollection += distAmount;
+    else distOutstanding += distAmount;
+  });
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+  set("sumPaidClubs", paid);
+  set("sumPendingClubs", pending);
+  set("sumUnpaidClubs", unpaid);
+  set("sumTotalClubs", total);
+  set("sumIntlCollection", formatMoney(intlCollection));
+  set("sumDistrictCollection", formatMoney(distCollection));
+  set("sumTotalCollection", formatMoney(intlCollection + distCollection));
+  set("sumIntlOutstanding", formatMoney(intlOutstanding));
+  set("sumDistrictOutstanding", formatMoney(distOutstanding));
+  set("sumTotalOutstanding", formatMoney(intlOutstanding + distOutstanding));
+}
+
+function filterAdminClubSearch() {
+  const inp = document.getElementById("adminClubSearch");
+  const sel = document.getElementById("adminSearchResults");
+  if (!inp || !sel) return;
+
+  const q = inp.value.trim().toLowerCase();
+  sel.innerHTML = '<option value="">-- Search Result --</option>';
+
+  if (!q) return;
+
+  globalClubs
+    .filter(club =>
+      String(club["Club Name"] || "").toLowerCase().includes(q) ||
+      String(club["Lion ID"] || "").toLowerCase().includes(q)
+    )
+    .slice(0, 30)
+    .forEach(club => {
+      const opt = document.createElement("option");
+      opt.value = club["Lion ID"];
+      opt.innerText = `${club["Club Name"] || ""} (${club["Lion ID"] || ""})`;
+      sel.appendChild(opt);
+    });
+}
+
+function openClubFromSearch() {
+  const id = document.getElementById("adminSearchResults").value;
+  if (!id) return;
+  document.getElementById("adminClubSelect").value = id;
+  loadClubToAdminForm();
+}
+
+async function loadAuditLogs(silent = false) {
+  const tbody = document.getElementById("auditLogBody");
+  if (!tbody) return;
+
+  try {
+    const result = await postData({ actionType: "get_audit_logs" });
+    auditLogs = result.logs || [];
+    renderAuditLogs();
+  } catch (err) {
+    if (!silent) alert("Audit log load error: " + err.toString());
+  }
+}
+
+function renderAuditLogs() {
+  const tbody = document.getElementById("auditLogBody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+  if (!auditLogs.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="request-empty">अहिले audit log छैन ।</td></tr>`;
+    return;
+  }
+
+  auditLogs.slice(0, 100).forEach(log => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${formatDisplayDate(log.Date)}</td>
+      <td>${log.Admin || ""}</td>
+      <td>${log.Action || ""}</td>
+      <td>${log["Club Name"] || ""}</td>
+      <td>${log["Lion ID"] || ""}</td>
+      <td>${log.Details || ""}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 function getPendingRequests() {
@@ -397,6 +558,7 @@ async function approvePaymentRequest(lionId) {
     if (result.status === "success") {
       alert(result.message || "Payment Approved भयो ।");
       await loadData({ silent: true });
+      loadAuditLogs(true);
     } else {
       alert(result.message || "Approve failed भयो ।");
     }
@@ -508,6 +670,7 @@ async function submitAdminUpdate() {
   try {
     const payload = {
       actionType: "admin_edit",
+      adminUser: getAdminUserName(),
       lionId: id,
       clubName: cName,
       activeMembers: document.getElementById("admActiveMembers").value,
@@ -583,6 +746,7 @@ async function submitAddNewClub() {
   try {
     const result = await postData({
       actionType: "add_new_club",
+      adminUser: getAdminUserName(),
       clubName: clubName,
       lionId: lionId,
       clubType: clubType,
