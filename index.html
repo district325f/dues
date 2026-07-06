@@ -60,6 +60,17 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 .admin-dashboard-view { display:none; margin-top:20px; padding:20px; background:#fffdf3; border:2px dashed #D4AF37; border-radius:8px; }
 .admin-action-row { display:flex; gap:10px; margin-top:15px; }
 
+
+.payment-requests-panel { margin-bottom:20px; padding:15px; background:#f4fff7; border:2px solid #2ecc71; border-radius:8px; }
+.payment-requests-panel h3 { margin:0 0 8px 0; color:#003366; }
+.request-note { font-size:13px; color:#4f5d75; margin:0 0 10px 0; }
+.requests-table-wrap { overflow-x:auto; }
+.requests-table th, .requests-table td { font-size:13px; padding:9px 8px; }
+.approve-btn { background:#2ecc71; color:white; border:none; padding:8px 10px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:700; width:auto; min-width:90px; }
+.approve-btn:hover { background:#27ae60; }
+.request-empty { text-align:center; padding:12px; color:#7f8c8d; background:white; border-radius:6px; }
+.auto-refresh-badge { display:inline-block; padding:4px 8px; border-radius:20px; background:#003366; color:white; font-size:11px; margin-left:8px; }
+
 @media(max-width:700px){
   body { margin:8px; }
   .container { padding:15px; }
@@ -191,6 +202,29 @@ tr:hover { background:#edf2f7; cursor:pointer; }
     <div class="admin-dashboard-view" id="adminDashboard">
       <h2 style="color:#003366; margin-top:0;">Admin Dashboard</h2>
 
+      <div class="payment-requests-panel" id="paymentRequestsPanel">
+        <h3>📌 Pending Payment Requests <span class="auto-refresh-badge">Auto refresh: 5 sec</span></h3>
+        <p class="request-note">कुन क्लबले payment विवरण पठाएको छ भन्ने request यहाँ देखिन्छ। Approve गरेपछि Pending Verification बाट Paid हुन्छ।</p>
+        <div class="requests-table-wrap">
+          <table class="requests-table">
+            <thead>
+              <tr>
+                <th>Club</th>
+                <th>Lion ID</th>
+                <th>Dues</th>
+                <th>Submitted By</th>
+                <th>Contact</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="paymentRequestsBody">
+              <tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन।</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <label><b>क्लब छान्नुहोस् (Select Club to Edit):</b></label>
       <select id="adminClubSelect" onchange="loadClubToAdminForm()">
         <option value="">-- Select a Club --</option>
@@ -250,6 +284,8 @@ let selectedClubForUser = null;
 let chosenDollarRate = 135;
 let oldIntlStatus = "";
 let oldDistrictStatus = "";
+let adminLoggedIn = false;
+let adminAutoRefreshTimer = null;
 
 function setBtnLoading(btnId, loadingText, normalText, isLoading) {
   const btn = document.getElementById(btnId);
@@ -276,15 +312,30 @@ function closeLightbox() {
   document.getElementById("qrLightbox").style.display = "none";
 }
 
-async function loadData() {
+async function loadData(options = {}) {
+  const silent = options.silent === true;
   try {
-    const res = await fetch(SCRIPT_URL);
+    const previousSelectedClub = document.getElementById("adminClubSelect") ? document.getElementById("adminClubSelect").value : "";
+    const adminFormVisible = document.getElementById("adminForm") && document.getElementById("adminForm").style.display === "block";
+
+    const res = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
     globalClubs = await res.json();
+
     renderTable();
-    populateAdminDropdown();
+    populateAdminDropdown(previousSelectedClub);
+
+    if (adminLoggedIn) {
+      renderPaymentRequests();
+      if (adminFormVisible && previousSelectedClub) {
+        document.getElementById("adminClubSelect").value = previousSelectedClub;
+        loadClubToAdminForm();
+      }
+    }
   } catch (err) {
-    document.getElementById("tableBody").innerHTML =
-      `<tr><td colspan="4" style="text-align:center;color:red;">गुगल सिटबाट डाटा लोड हुन सकेन ।</td></tr>`;
+    if (!silent) {
+      document.getElementById("tableBody").innerHTML =
+        `<tr><td colspan="4" style="text-align:center;color:red;">गुगल सिटबाट डाटा लोड हुन सकेन ।</td></tr>`;
+    }
   }
 }
 
@@ -471,7 +522,7 @@ async function submitUserPayment() {
       `भौचर पठाउने व्यक्तिको विवरण:\n` +
       `*नाम:* ${senderName}\n` +
       `*सम्पर्क नम्बर:* ${senderPhone}\n\n` +
-      `मैले भुक्तानी भौचर WhatsApp मार्फत पठाएको/पठाउँदैछु । System मा Pending Verification छ । कृपया विवरण चेक गरी मेरो क्लबको भुक्तानी Approve गरिदिनुहोला ।`;
+      `मैले भुक्तानी भौचर WhatsApp मार्फत पठाएको/पठाउँदैछु । System मा Pending Verification छ । कृपया विवरण चेक गरी मेरो क्लबको भुक्तानी Approve गरिदिनुहोलाा ।\n\nलायन कृष्ण ज्योती शाक्य\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
 
     const waUrl = buildWhatsAppUrl(waNumber, waMessage);
 
@@ -494,6 +545,7 @@ function openAdminModal() {
 
 function closeAdminModal() {
   document.getElementById("adminModal").style.display = "none";
+  stopAdminAutoRefresh();
 }
 
 async function checkAdminLogin() {
@@ -517,6 +569,9 @@ async function checkAdminLogin() {
     if (result.status === "success") {
       document.getElementById("adminDashboard").style.display = "block";
       document.getElementById("loginBox").style.display = "none";
+      adminLoggedIn = true;
+      renderPaymentRequests();
+      startAdminAutoRefresh();
       alert(result.message || "एड्मिन लगइन सफल भयो।");
     } else {
       alert(result.message || "Login failed.");
@@ -528,8 +583,9 @@ async function checkAdminLogin() {
   }
 }
 
-function populateAdminDropdown() {
+function populateAdminDropdown(selectedValue = "") {
   const select = document.getElementById("adminClubSelect");
+  if (!select) return;
   select.innerHTML = '<option value="">-- Select a Club --</option>';
 
   globalClubs.forEach(club => {
@@ -538,6 +594,7 @@ function populateAdminDropdown() {
     opt.innerText = club["Club Name"];
     select.appendChild(opt);
   });
+  if (selectedValue) select.value = selectedValue;
 }
 
 function loadClubToAdminForm() {
@@ -618,7 +675,7 @@ async function submitAdminUpdate() {
       loadData();
 
       if (shouldOpenWhatsApp) {
-        const updateMsg = `तपाईँको क्लब *${cName}* को Dues सिस्टममा अपडेट भयो । धन्यवाद !`;
+        const updateMsg = `तपाईँको क्लब *${cName}* को Dues सिस्टममा अपडेट भयो । धन्यवाद !\n\nलायन कृष्ण ज्योती शाक्य\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
         const waUrl = buildWhatsAppUrl(targetPhone, updateMsg);
         openWhatsAppReliable(waUrl, reservedWhatsAppWindow);
       }
@@ -634,6 +691,98 @@ async function submitAdminUpdate() {
   }
 }
 
+
+function getPendingRequests() {
+  return globalClubs.filter(club => {
+    const intl = String(club["Payment Status"] || "").trim();
+    const dist = String(club["District Payment Status"] || "").trim();
+    return intl === "Pending Verification" || dist === "Pending Verification";
+  });
+}
+
+function renderPaymentRequests() {
+  const tbody = document.getElementById("paymentRequestsBody");
+  if (!tbody) return;
+
+  const requests = getPendingRequests();
+  tbody.innerHTML = "";
+
+  if (requests.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन।</td></tr>`;
+    return;
+  }
+
+  requests.forEach(club => {
+    const intlPending = String(club["Payment Status"] || "").trim() === "Pending Verification";
+    const distPending = String(club["District Payment Status"] || "").trim() === "Pending Verification";
+    const duesText = [intlPending ? "International" : "", distPending ? "District" : ""].filter(Boolean).join(" + ");
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><b>${club["Club Name"] || ""}</b></td>
+      <td>${club["Lion ID"] || ""}</td>
+      <td>${duesText}</td>
+      <td>${club["Submitted By"] || ""}</td>
+      <td>${club["Contact Number"] || ""}</td>
+      <td>${formatDisplayDate(club["Payment Date"])}</td>
+      <td><button class="approve-btn" onclick="approvePaymentRequest('${String(club["Lion ID"] || "").replace(/'/g, "\\'")}')">Approve</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function formatDisplayDate(value) {
+  if (!value) return "";
+  try {
+    const d = new Date(value);
+    if (!isNaN(d.getTime())) return d.toLocaleString();
+  } catch (e) {}
+  return value;
+}
+
+async function approvePaymentRequest(lionId) {
+  const club = globalClubs.find(c => String(c["Lion ID"]) === String(lionId));
+  if (!club) {
+    alert("क्लब फेला परेन।");
+    return;
+  }
+
+  const ok = confirm(`${club["Club Name"]} को pending payment approve गर्ने हो?`);
+  if (!ok) return;
+
+  try {
+    const result = await postData({
+      actionType: "approve_request",
+      lionId: lionId
+    });
+
+    if (result.status === "success") {
+      alert(result.message || "Payment Approved भयो।");
+      await loadData({ silent: true });
+    } else {
+      alert(result.message || "Approve failed भयो।");
+    }
+  } catch (err) {
+    alert("Approve error: " + err.toString());
+  }
+}
+
+function startAdminAutoRefresh() {
+  stopAdminAutoRefresh();
+  adminAutoRefreshTimer = setInterval(function() {
+    if (adminLoggedIn && document.getElementById("adminDashboard").style.display === "block") {
+      loadData({ silent: true });
+    }
+  }, 5000);
+}
+
+function stopAdminAutoRefresh() {
+  if (adminAutoRefreshTimer) {
+    clearInterval(adminAutoRefreshTimer);
+    adminAutoRefreshTimer = null;
+  }
+}
+
 function sendAdminDuesReminder() {
   const cName = document.getElementById("admClubName").value;
   const targetPhone = document.getElementById("admWhatsApp").value.trim().replace(/[-+ \s]/g, "");
@@ -645,7 +794,7 @@ function sendAdminDuesReminder() {
 
   const reminderMsg =
     `महत्वपूर्ण सूचना:\n` +
-    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ । कृपया वित्तीय विवरण पोर्टलमा चेक गरी समयमै भुक्तानी गरिदिनुहोला । धन्यवाद !`;
+    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ । कृपया वित्तीय विवरण पोर्टलमा चेक गरी समयमै भुक्तानी गरिदिनुहोला । धन्यवाद !\n\nलायन कृष्ण ज्योती शाक्य\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
 
   const waUrl = buildWhatsAppUrl(targetPhone, reminderMsg);
   openWhatsAppReliable(waUrl);
@@ -657,7 +806,7 @@ function buildWhatsAppUrl(phone, message) {
 }
 
 function openWhatsAppReliable(waUrl, reservedWindow) {
-  // Submit click कै समयमा खोलिएको blank tab/window लाई पछि WhatsApp URL दिने हो।
+  // Submit click कै समयमा खोलिएको blank tab/window लाई पछि WhatsApp URL दिने हो ।
   // यसले mobile/browser popup block समस्या हटाउँछ।
   try {
     if (reservedWindow && !reservedWindow.closed) {
