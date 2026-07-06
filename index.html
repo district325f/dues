@@ -161,10 +161,13 @@ tr:hover { background:#edf2f7; cursor:pointer; }
         <p style="font-size:11px; color:#7f8c8d;">(क्युआर कोड ठूलो बनाएर हेर्न यहाँ क्लिक गर्नुहोस्)</p>
       </div>
 
-      <label style="font-size:14px; font-weight:600;">१. भुक्तानी गरेको बैंक रसिद वा स्क्रिनसट अपलोड गर्नुहोस्:</label>
-      <input type="file" id="userFileAccept" accept="image/*" style="border:1px dashed #ccc; padding:10px; background:#fafbfc;">
+      <label style="font-size:14px; font-weight:600;">१. भौचर पठाउने व्यक्तिको नाम:</label>
+      <input type="text" id="voucherSenderName" placeholder="नाम लेख्नुहोस्..." style="border:1px solid #ccc; padding:10px; background:#fafbfc;">
 
-      <button id="submitPaymentBtn" class="primary-btn" style="margin-top:20px; background:#2ecc71; font-size:16px;" onclick="submitUserPayment()">Submit Payment Report</button>
+      <label style="font-size:14px; font-weight:600; margin-top:10px; display:block;">२. सम्पर्क नम्बर:</label>
+      <input type="tel" id="voucherSenderPhone" placeholder="सम्पर्क नम्बर लेख्नुहोस्..." style="border:1px solid #ccc; padding:10px; background:#fafbfc;">
+
+      <button id="submitPaymentBtn" class="primary-btn" style="margin-top:20px; background:#2ecc71; font-size:16px;" onclick="submitUserPayment()">WhatsApp मा विवरण पठाउनुहोस्</button>
     </div>
   </div>
 </div>
@@ -396,10 +399,16 @@ function recalcTotalToPay() {
 }
 
 async function submitUserPayment() {
-  const fileInput = document.getElementById("userFileAccept");
+  const senderName = document.getElementById("voucherSenderName").value.trim();
+  const senderPhone = document.getElementById("voucherSenderPhone").value.trim();
 
-  if (fileInput.files.length === 0) {
-    alert("कृपया बैंक रसिद वा स्क्रिनसट अनिवार्य अपलोड गर्नुहोस् ।");
+  if (!senderName) {
+    alert("कृपया भौचर पठाउने व्यक्तिको नाम राख्नुहोस् ।");
+    return;
+  }
+
+  if (!senderPhone) {
+    alert("कृपया सम्पर्क नम्बर राख्नुहोस् ।");
     return;
   }
 
@@ -416,58 +425,54 @@ async function submitUserPayment() {
   else if (chkIntl) selectedDuesText = "International Dues";
   else selectedDuesText = "District Dues";
 
-  const file = fileInput.files[0];
-  const reader = new FileReader();
-  const timestampId = new Date().getTime();
+  const payAmount = document.getElementById("payAmountText").innerText || "0";
 
-  setBtnLoading("submitPaymentBtn", "⏳ Upload हुँदैछ...", "Submit Payment Report", true);
+  setBtnLoading("submitPaymentBtn", "⏳ WhatsApp खोल्दैछ...", "WhatsApp मा विवरण पठाउनुहोस्", true);
 
-  reader.onload = async function(e) {
-    try {
-      const payload = {
-        actionType: "user_payment",
-        lionId: selectedClubForUser["Lion ID"],
-        transactionId: "VOUCHER_" + timestampId,
-        payInternational: chkIntl,
-        payDistrict: chkDist,
-        fileData: e.target.result,
-        fileName: String(selectedClubForUser["Club Name"] || "Club").replace(/\s+/g, "_") + "_" + timestampId + "_Voucher.jpg",
-        fileMime: file.type || "image/jpeg"
-      };
-
-      const result = await postData(payload);
-
-      if (result.status === "success") {
-        alert(result.message);
-        closeDetailsModal();
-        loadData();
-
-        const waNumber = "9779851030055";
-        const waMessage =
-          `नमस्ते लायन कृष्ण ज्योती शाक्य ज्यू,\n\n` +
-          `${selectedClubForUser["Club Name"]} को ${selectedDuesText} को Dues भुक्तानी गरी भौचर यसै साथ पठाएको छु ।\n\n` +
-          `*नाम:* \n*सम्पर्क:* \n\n` +
-          `विवरण चेक गरी कृपया सिस्टममा अपडेट गरिदिनुहोला ।`;
-
-        const waUrl = buildWhatsAppUrl(waNumber, waMessage);
-        openWhatsAppReliable(waUrl);
-      } else {
-        alert(result.message || "Upload failed भयो।");
-      }
-    } catch (err) {
-      alert("Upload error: " + err.toString());
-    } finally {
-      setBtnLoading("submitPaymentBtn", "⏳ Upload हुँदैछ...", "Submit Payment Report", false);
+  // WhatsApp popup block नहोस् भनेर user click कै समयमा blank tab reserve गर्ने
+  let reservedWhatsAppWindow = null;
+  try {
+    reservedWhatsAppWindow = window.open("", "_blank");
+    if (reservedWhatsAppWindow) {
+      reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>WhatsApp खोलिँदैछ... कृपया पर्खनुहोस्।</p>");
     }
-  };
+  } catch (e) {
+    reservedWhatsAppWindow = null;
+  }
 
-  reader.onerror = function() {
-    alert("File read गर्न सकेन । कृपया अर्को फोटो upload गर्नुहोस् ।");
-    setBtnLoading("submitPaymentBtn", "⏳ Upload हुँदैछ...", "Submit Payment Report", false);
-  };
+  const waNumber = "9779851030055";
+  const waMessage =
+    `नमस्ते लायन कृष्ण ज्योती शाक्य ज्यू,
 
-  reader.readAsDataURL(file);
+` +
+    `*Club Name:* ${selectedClubForUser["Club Name"]}
+` +
+    `*Lion ID:* ${selectedClubForUser["Lion ID"]}
+` +
+    `*भुक्तानी शीर्षक:* ${selectedDuesText}
+` +
+    `*रकम:* रु. ${payAmount}
+
+` +
+    `भौचर पठाउने व्यक्तिको विवरण:
+` +
+    `*नाम:* ${senderName}
+` +
+    `*सम्पर्क नम्बर:* ${senderPhone}
+
+` +
+    `भुक्तानी भौचर WhatsApp मार्फत पठाएको/पठाउँदैछु । कृपया विवरण चेक गरी सिस्टममा अपडेट गरिदिनुहोला ।`;
+
+  const waUrl = buildWhatsAppUrl(waNumber, waMessage);
+
+  closeDetailsModal();
+  openWhatsAppReliable(waUrl, reservedWhatsAppWindow);
+
+  setTimeout(function() {
+    setBtnLoading("submitPaymentBtn", "⏳ WhatsApp खोल्दैछ...", "WhatsApp मा विवरण पठाउनुहोस्", false);
+  }, 1000);
 }
+
 
 function openAdminModal() {
   document.getElementById("adminModal").style.display = "block";
@@ -564,6 +569,19 @@ async function submitAdminUpdate() {
   const newIntlStatus = document.getElementById("admIntlStatus").value;
   const newDistrictStatus = document.getElementById("admDistrictStatus").value;
 
+  let reservedWhatsAppWindow = null;
+  const shouldOpenWhatsApp = targetPhone && (newIntlStatus !== oldIntlStatus || newDistrictStatus !== oldDistrictStatus);
+  if (shouldOpenWhatsApp) {
+    try {
+      reservedWhatsAppWindow = window.open("", "_blank");
+      if (reservedWhatsAppWindow) {
+        reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>WhatsApp खोलिँदैछ... कृपया पर्खनुहोस्।</p>");
+      }
+    } catch (e) {
+      reservedWhatsAppWindow = null;
+    }
+  }
+
   setBtnLoading("adminSaveBtn", "⏳ Saving...", "Save & Update Sheet", true);
 
   try {
@@ -585,17 +603,17 @@ async function submitAdminUpdate() {
       alert(result.message);
       loadData();
 
-      if (newIntlStatus !== oldIntlStatus || newDistrictStatus !== oldDistrictStatus) {
-        if (targetPhone) {
-          const updateMsg = `तपाईँको क्लब *${cName}* को Dues सिस्टममा अपडेट भयो । धन्यवाद !`;
-          const waUrl = buildWhatsAppUrl(targetPhone, updateMsg);
-          openWhatsAppReliable(waUrl);
-        }
+      if (shouldOpenWhatsApp) {
+        const updateMsg = `तपाईँको क्लब *${cName}* को Dues सिस्टममा अपडेट भयो । धन्यवाद !`;
+        const waUrl = buildWhatsAppUrl(targetPhone, updateMsg);
+        openWhatsAppReliable(waUrl, reservedWhatsAppWindow);
       }
     } else {
+      if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
       alert(result.message || "Update failed भयो।");
     }
   } catch (err) {
+    if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
     alert("Admin update error: " + err.toString());
   } finally {
     setBtnLoading("adminSaveBtn", "⏳ Saving...", "Save & Update Sheet", false);
@@ -624,22 +642,22 @@ function buildWhatsAppUrl(phone, message) {
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }
 
-function openWhatsAppReliable(waUrl) {
-  // GitHub, mobile browser र Apps Script iframe सबैमा चलाउन anchor + _top fallback प्रयोग गरिएको छ
-  const a = document.createElement("a");
-  a.href = waUrl;
-  a.target = "_top";
-  a.rel = "noopener";
-  document.body.appendChild(a);
-  a.click();
-
-  setTimeout(function() {
-    try {
-      window.top.location.href = waUrl;
-    } catch (e) {
-      window.location.href = waUrl;
+function openWhatsAppReliable(waUrl, reservedWindow) {
+  // Submit click कै समयमा खोलिएको blank tab/window लाई पछि WhatsApp URL दिने हो।
+  // यसले mobile/browser popup block समस्या हटाउँछ।
+  try {
+    if (reservedWindow && !reservedWindow.closed) {
+      reservedWindow.location.href = waUrl;
+      return;
     }
-  }, 200);
+  } catch (e) {}
+
+  // fallback: same page redirect
+  try {
+    window.top.location.href = waUrl;
+  } catch (e) {
+    window.location.href = waUrl;
+  }
 }
 
 window.onload = loadData;
