@@ -522,7 +522,7 @@ async function submitUserPayment() {
       `भौचर पठाउने व्यक्तिको विवरण:\n` +
       `*नाम:* ${senderName}\n` +
       `*सम्पर्क नम्बर:* ${senderPhone}\n\n` +
-      `मैले भुक्तानी भौचर WhatsApp मार्फत पठाएको/पठाउँदैछु । System मा Pending Verification छ । कृपया विवरण चेक गरी मेरो क्लबको भुक्तानी Approve गरिदिनुहोलाा ।\n\nलायन कृष्ण ज्योती शाक्य\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
+      `मैले भुक्तानी भौचर WhatsApp मार्फत पठाएको/पठाउँदैछु । Google Sheet मा Pending Verification राखिएको छ। कृपया विवरण चेक गरी Admin बाट Approve गरिदिनुहोला ।\n\nलायन कृष्ण ज्योती शाक्य\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
 
     const waUrl = buildWhatsAppUrl(waNumber, waMessage);
 
@@ -806,7 +806,7 @@ function buildWhatsAppUrl(phone, message) {
 }
 
 function openWhatsAppReliable(waUrl, reservedWindow) {
-  // Submit click कै समयमा खोलिएको blank tab/window लाई पछि WhatsApp URL दिने हो ।
+  // Submit click कै समयमा खोलिएको blank tab/window लाई पछि WhatsApp URL दिने हो।
   // यसले mobile/browser popup block समस्या हटाउँछ।
   try {
     if (reservedWindow && !reservedWindow.closed) {
