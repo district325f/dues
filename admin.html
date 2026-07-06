@@ -81,7 +81,7 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 .summary-card { background:white; border:1px solid #dce9f7; border-radius:8px; padding:12px; text-align:center; }
 .summary-card .num { font-size:22px; font-weight:800; color:#003366; margin-top:4px; }
 .summary-card .label { font-size:12px; color:#4f5d75; font-weight:700; }
-.collection-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:10px; }
+.collection-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-top:10px; }
 .admin-search-box { margin:12px 0; padding:12px; background:#f7fbff; border:1px solid #dce9f7; border-radius:8px; }
 .audit-log-panel { margin-bottom:20px; padding:15px; background:#fff7fb; border:2px solid #c0392b; border-radius:8px; }
 .audit-log-panel h3 { margin:0 0 10px 0; color:#003366; }
@@ -164,13 +164,20 @@ body { margin:0; }
       </div>
       <div class="collection-grid">
         <div class="summary-card"><div class="label">International Collection</div><div class="num" id="sumIntlCollection">रु. 0</div></div>
-        <div class="summary-card"><div class="label">District Collection</div><div class="num" id="sumDistrictCollection">रु. 0</div></div>
+        <div class="summary-card"><div class="label">District Base Collection</div><div class="num" id="sumDistrictCollection">रु. 0</div></div>
+        <div class="summary-card"><div class="label">New Member Collection</div><div class="num" id="sumNewMemberCollection">रु. 0</div></div>
         <div class="summary-card"><div class="label">Total Collection</div><div class="num" id="sumTotalCollection">रु. 0</div></div>
       </div>
       <div class="collection-grid">
         <div class="summary-card"><div class="label">International Outstanding</div><div class="num" id="sumIntlOutstanding">रु. 0</div></div>
-        <div class="summary-card"><div class="label">District Outstanding</div><div class="num" id="sumDistrictOutstanding">रु. 0</div></div>
+        <div class="summary-card"><div class="label">District Base Outstanding</div><div class="num" id="sumDistrictOutstanding">रु. 0</div></div>
+        <div class="summary-card"><div class="label">New Member Outstanding</div><div class="num" id="sumNewMemberOutstanding">रु. 0</div></div>
         <div class="summary-card"><div class="label">Total Outstanding</div><div class="num" id="sumTotalOutstanding">रु. 0</div></div>
+      </div>
+      <div class="collection-grid">
+        <div class="summary-card"><div class="label">Total New Members</div><div class="num" id="sumNewMemberCount">0</div></div>
+        <div class="summary-card"><div class="label">New Member Fee Rate</div><div class="num">रु. 100</div></div>
+        <div class="summary-card"><div class="label">New Member Total Fee</div><div class="num" id="sumNewMemberTotalFee">रु. 0</div></div>
       </div>
     </div>
 
@@ -405,16 +412,24 @@ function renderDashboardSummary() {
   if (!currentRate && globalClubs.length) {
     alert('Exchange Rate sheet मा valid Rate छैन। A1 मा "Rate" र B1 मा rate value राख्नुहोस्।');
   }
+
   let paid = 0, pending = 0, unpaid = 0;
-  let intlCollection = 0, distCollection = 0, intlOutstanding = 0, distOutstanding = 0;
+  let intlCollection = 0, intlOutstanding = 0;
+  let districtBaseCollection = 0, districtBaseOutstanding = 0;
+  let newMemberCollection = 0, newMemberOutstanding = 0;
+  let totalNewMemberCount = 0;
 
   globalClubs.forEach(club => {
     const intlStatus = getStatusValue(club["Payment Status"]);
     const distStatus = getStatusValue(club["District Payment Status"]);
     const rate = numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]);
+
     const intlAmountNpr = numberValue(club["International Due Amount"]) * rate;
-    const newMemberFee = numberValue(club["New Member"]) * 100;
-    const distAmount = numberValue(club["District Due Amount"]) + newMemberFee;
+    const districtBaseAmount = numberValue(club["District Due Amount"]);
+    const newMemberCount = numberValue(club["New Member"]);
+    const newMemberFee = newMemberCount * 100;
+
+    totalNewMemberCount += newMemberCount;
 
     if (intlStatus === "Paid" && distStatus === "Paid") paid++;
     else if (intlStatus === "Pending Verification" || distStatus === "Pending Verification") pending++;
@@ -423,9 +438,19 @@ function renderDashboardSummary() {
     if (intlStatus === "Paid") intlCollection += intlAmountNpr;
     else intlOutstanding += intlAmountNpr;
 
-    if (distStatus === "Paid") distCollection += distAmount;
-    else distOutstanding += distAmount;
+    if (distStatus === "Paid") {
+      districtBaseCollection += districtBaseAmount;
+      newMemberCollection += newMemberFee;
+    } else {
+      districtBaseOutstanding += districtBaseAmount;
+      newMemberOutstanding += newMemberFee;
+    }
   });
+
+  const districtTotalCollection = districtBaseCollection + newMemberCollection;
+  const districtTotalOutstanding = districtBaseOutstanding + newMemberOutstanding;
+  const totalCollection = intlCollection + districtTotalCollection;
+  const totalOutstanding = intlOutstanding + districtTotalOutstanding;
 
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
   set("sumExchangeRate", currentRate);
@@ -433,12 +458,19 @@ function renderDashboardSummary() {
   set("sumPendingClubs", pending);
   set("sumUnpaidClubs", unpaid);
   set("sumTotalClubs", total);
+
   set("sumIntlCollection", formatMoney(intlCollection));
-  set("sumDistrictCollection", formatMoney(distCollection));
-  set("sumTotalCollection", formatMoney(intlCollection + distCollection));
+  set("sumDistrictCollection", formatMoney(districtBaseCollection));
+  set("sumNewMemberCollection", formatMoney(newMemberCollection));
+  set("sumTotalCollection", formatMoney(totalCollection));
+
   set("sumIntlOutstanding", formatMoney(intlOutstanding));
-  set("sumDistrictOutstanding", formatMoney(distOutstanding));
-  set("sumTotalOutstanding", formatMoney(intlOutstanding + distOutstanding));
+  set("sumDistrictOutstanding", formatMoney(districtBaseOutstanding));
+  set("sumNewMemberOutstanding", formatMoney(newMemberOutstanding));
+  set("sumTotalOutstanding", formatMoney(totalOutstanding));
+
+  set("sumNewMemberCount", totalNewMemberCount);
+  set("sumNewMemberTotalFee", formatMoney((newMemberCollection + newMemberOutstanding)));
 }
 
 function filterAdminClubSearch() {
