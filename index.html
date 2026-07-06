@@ -144,7 +144,7 @@ tr:hover { background:#edf2f7; cursor:pointer; }
     <span class="close" onclick="closeRateModal()">&times;</span>
     <h3 style="color:#003366;">Exchange Rate From Sheet</h3>
     <p style="font-size:14px; color:#4f5d75;">लायन्स एक्सचेन्ज रेट Google Sheet को "Exchange Rate" sheet बाट लिइन्छ।</p>
-    <input type="number" id="tempDollarRate" value="135" style="text-align:center; font-size:24px; font-weight:bold; color:#e74c3c;">
+    <input type="number" id="tempDollarRate" value="" style="text-align:center; font-size:24px; font-weight:bold; color:#e74c3c;">
     <button class="primary-btn" onclick="saveRateAndProceed()">अघि बढ्नुहोस् (Proceed)</button>
   </div>
 </div>
@@ -209,7 +209,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2Aty2uZ_e6fzEossHS
 
 let globalClubs = [];
 let selectedClubForUser = null;
-let chosenDollarRate = 135;
+let chosenDollarRate = 0;
 let oldIntlStatus = "";
 let oldDistrictStatus = "";
 let adminLoggedIn = false;
@@ -248,9 +248,14 @@ async function loadData(options = {}) {
 
     const res = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
     const data = await res.json();
-    globalClubs = Array.isArray(data) ? data : (data.clubs || []);
+    if (data.status === "error") {
+      alert(data.message || "Exchange Rate वा data load error भयो।");
+      globalClubs = [];
+    } else {
+      globalClubs = Array.isArray(data) ? data : (data.clubs || []);
+    }
     if (globalClubs.length && globalClubs[0]["__exchangeRate"]) {
-      chosenDollarRate = parseFloat(globalClubs[0]["__exchangeRate"]) || 135;
+      chosenDollarRate = parseFloat(globalClubs[0]["__exchangeRate"]) || 0;
     }
 
     renderTable();
@@ -309,7 +314,7 @@ function renderTable() {
 
 function triggerClubClick(club) {
   selectedClubForUser = club;
-  chosenDollarRate = parseFloat(club["__exchangeRate"]) || chosenDollarRate || 135;
+  chosenDollarRate = parseFloat(club["__exchangeRate"]) || chosenDollarRate || 0;
   openDetailsModal();
 }
 
@@ -318,7 +323,7 @@ function closeRateModal() {
 }
 
 function saveRateAndProceed() {
-  chosenDollarRate = parseFloat(document.getElementById("tempDollarRate").value) || 135;
+  chosenDollarRate = parseFloat(document.getElementById("tempDollarRate").value) || 0;
   closeRateModal();
   openDetailsModal();
 }
@@ -334,6 +339,11 @@ function isPayableStatus(value) {
 
 function openDetailsModal() {
   const club = selectedClubForUser;
+  chosenDollarRate = parseFloat(club["__exchangeRate"]) || chosenDollarRate || 0;
+  if (!chosenDollarRate) {
+    alert('Exchange Rate sheet मा valid Rate छैन। A1 मा "Rate" र B1 मा rate value राख्नुहोस्।');
+    return;
+  }
   const intlStatus = getStatusValue(club["Payment Status"]);
   const districtStatus = getStatusValue(club["District Payment Status"]);
 
