@@ -276,7 +276,12 @@ async function loadData(options = {}) {
     const selected = document.getElementById("adminClubSelect") ? document.getElementById("adminClubSelect").value : "";
     const res = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
     const data = await res.json();
-    globalClubs = Array.isArray(data) ? data : (data.clubs || []);
+    if (data.status === "error") {
+      alert(data.message || "Exchange Rate वा data load error भयो।");
+      globalClubs = [];
+    } else {
+      globalClubs = Array.isArray(data) ? data : (data.clubs || []);
+    }
     populateAdminDropdown(selected);
     filterAdminClubSearch();
     renderPaymentRequests();
@@ -392,14 +397,17 @@ function formatMoney(n) {
 
 function renderDashboardSummary() {
   const total = globalClubs.length;
-  const currentRate = globalClubs.length ? (numberValue(globalClubs[0]["__exchangeRate"]) || 135) : 135;
+  const currentRate = globalClubs.length ? numberValue(globalClubs[0]["__exchangeRate"]) : 0;
+  if (!currentRate && globalClubs.length) {
+    alert('Exchange Rate sheet मा valid Rate छैन। A1 मा "Rate" र B1 मा rate value राख्नुहोस्।');
+  }
   let paid = 0, pending = 0, unpaid = 0;
   let intlCollection = 0, distCollection = 0, intlOutstanding = 0, distOutstanding = 0;
 
   globalClubs.forEach(club => {
     const intlStatus = getStatusValue(club["Payment Status"]);
     const distStatus = getStatusValue(club["District Payment Status"]);
-    const rate = numberValue(club["__exchangeRate"]) || 135;
+    const rate = numberValue(club["__exchangeRate"]);
     const intlAmountNpr = numberValue(club["International Due Amount"]) * rate;
     const fallbackDist = (numberValue(club["Active Member Count"]) * 1265) + (numberValue(club["New Member"]) * 100);
     const distAmount = numberValue(club["District Due Amount"]) || fallbackDist;
