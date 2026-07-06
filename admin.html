@@ -229,7 +229,11 @@ body { margin:0; }
       <p><b>Lion ID:</b> <span id="admLionId"></span></p>
       <label>Club Name:</label><input type="text" id="admClubName">
       <label>Active Member Count:</label><input type="number" id="admActiveMembers">
-      <label>New Member Count:</label><input type="number" id="admNewMembers">
+      <label>New Member Count:</label><input type="number" id="admNewMembers" oninput="updateAdminNewMemberFee()">
+      <div style="background:#f8f9fa;border:1px solid #e1e8ed;border-radius:6px;padding:10px;margin:5px 0;font-size:14px;">
+        <b>New Member Entrance Fee:</b> रु. <span id="admNewMemberFee">0</span><br>
+        <b>Total District Payable:</b> रु. <span id="admTotalDistrictPayable">0</span>
+      </div>
       <label>International Dues (USD):</label><input type="number" id="admIntlDues">
       <label>WhatsApp Number:</label><input type="text" id="admWhatsApp">
       <label>International Payment Status:</label><select id="admIntlStatus"><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="Paid">Paid</option></select>
@@ -407,10 +411,10 @@ function renderDashboardSummary() {
   globalClubs.forEach(club => {
     const intlStatus = getStatusValue(club["Payment Status"]);
     const distStatus = getStatusValue(club["District Payment Status"]);
-    const rate = numberValue(club["__exchangeRate"]);
+    const rate = numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]);
     const intlAmountNpr = numberValue(club["International Due Amount"]) * rate;
-    const fallbackDist = (numberValue(club["Active Member Count"]) * 1265) + (numberValue(club["New Member"]) * 100);
-    const distAmount = numberValue(club["District Due Amount"]) || fallbackDist;
+    const newMemberFee = numberValue(club["New Member"]) * 100;
+    const distAmount = numberValue(club["District Due Amount"]) + newMemberFee;
 
     if (intlStatus === "Paid" && distStatus === "Paid") paid++;
     else if (intlStatus === "Pending Verification" || distStatus === "Pending Verification") pending++;
@@ -595,8 +599,8 @@ function renderAdminReport() {
     if (duesType === "District" || duesType === "Both") {
       const st = getStatusValue(club["District Payment Status"]);
       if (statusFilter === "All" || st === statusFilter) {
-        const fallbackDistNpr = ((parseFloat(club["Active Member Count"]) || 0) * 1265) + ((parseFloat(club["New Member"]) || 0) * 100);
-        rows.push({ club, type: "District", amount: club["District Due Amount"] || fallbackDistNpr, status: st });
+        const newMemberFee = (parseFloat(club["New Member"]) || 0) * 100;
+        rows.push({ club, type: "District", amount: (parseFloat(club["District Due Amount"]) || 0) + newMemberFee, status: st });
       }
     }
   });
@@ -622,6 +626,19 @@ function renderAdminReport() {
   });
 }
 
+
+function updateAdminNewMemberFee() {
+  const club = globalClubs.find(c => String(c["Lion ID"]) === String(document.getElementById("adminClubSelect").value));
+  const newCount = parseFloat(document.getElementById("admNewMembers")?.value || 0) || 0;
+  const newFee = newCount * 100;
+  const districtBase = club ? (parseFloat(club["District Due Amount"]) || 0) : 0;
+
+  const feeEl = document.getElementById("admNewMemberFee");
+  const totalEl = document.getElementById("admTotalDistrictPayable");
+  if (feeEl) feeEl.innerText = newFee.toLocaleString();
+  if (totalEl) totalEl.innerText = (districtBase + newFee).toLocaleString();
+}
+
 function loadClubToAdminForm() {
   const id = document.getElementById("adminClubSelect").value;
 
@@ -638,6 +655,7 @@ function loadClubToAdminForm() {
     document.getElementById("admClubName").value = club["Club Name"];
     document.getElementById("admActiveMembers").value = club["Active Member Count"];
     document.getElementById("admNewMembers").value = club["New Member"] || 0;
+    updateAdminNewMemberFee();
     document.getElementById("admIntlDues").value = club["International Due Amount"];
     document.getElementById("admWhatsApp").value = club["WhatsApp Number"] || "";
 
