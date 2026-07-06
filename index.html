@@ -71,6 +71,22 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 .request-empty { text-align:center; padding:12px; color:#7f8c8d; background:white; border-radius:6px; }
 .auto-refresh-badge { display:inline-block; padding:4px 8px; border-radius:20px; background:#003366; color:white; font-size:11px; margin-left:8px; }
 
+.admin-report-panel { margin-bottom:20px; padding:15px; background:#f8f9ff; border:2px solid #003366; border-radius:8px; }
+.admin-report-panel h3 { margin:0 0 10px 0; color:#003366; }
+.report-controls { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; align-items:end; }
+.report-table-wrap { overflow-x:auto; margin-top:10px; }
+.report-table th, .report-table td { font-size:13px; padding:9px 8px; }
+@media(max-width:700px){ .report-controls { grid-template-columns:1fr; } }
+
+.add-club-panel { margin-bottom:20px; padding:15px; background:#fffaf0; border:2px solid #D4AF37; border-radius:8px; }
+.add-club-panel h3 { margin:0 0 10px 0; color:#003366; }
+.add-club-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.add-club-grid .full { grid-column:1 / -1; }
+.toggle-add-btn { background:#D4AF37; color:#003366; border:none; font-weight:800; cursor:pointer; }
+@media(max-width:700px){ .add-club-grid { grid-template-columns:1fr; } }
+
+
+
 @media(max-width:700px){
   body { margin:8px; }
   .container { padding:15px; }
@@ -204,7 +220,7 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 
       <div class="payment-requests-panel" id="paymentRequestsPanel">
         <h3>📌 Pending Payment Requests <span class="auto-refresh-badge">Auto refresh: 5 sec</span></h3>
-        <p class="request-note">कुन क्लबले payment विवरण पठाएको छ भन्ने request यहाँ देखिन्छ । Approve गरेपछि Pending Verification बाट Paid हुन्छ ।</p>
+        <p class="request-note">कुन क्लबले payment विवरण पठाएको छ भन्ने request यहाँ देखिन्छ। Approve गरेपछि Pending Verification बाट Paid हुन्छ।</p>
         <div class="requests-table-wrap">
           <table class="requests-table">
             <thead>
@@ -219,7 +235,102 @@ tr:hover { background:#edf2f7; cursor:pointer; }
               </tr>
             </thead>
             <tbody id="paymentRequestsBody">
-              <tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन ।</td></tr>
+              <tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन।</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+
+      <div class="add-club-panel" id="addNewClubPanel">
+        <h3>➕ Add New Club</h3>
+        <p class="request-note">नयाँ क्लब थप्दा क्लब नाम automatic CAPITAL मा बस्छ। International Dues active billing period अनुसार Paid हुन्छ, District Dues Unpaid रहन्छ।</p>
+        <button type="button" class="toggle-add-btn" onclick="toggleAddClubForm()">➕ नयाँ क्लब थप्ने Form खोल्नुहोस् / बन्द गर्नुहोस्</button>
+        <div id="addClubFormBox" style="display:none; margin-top:12px;">
+          <div class="add-club-grid">
+            <div class="full">
+              <label><b>Club Name:</b></label>
+              <input type="text" id="newClubName" placeholder="CLUB NAME" oninput="this.value=this.value.toUpperCase()">
+            </div>
+            <div>
+              <label><b>Lion ID:</b></label>
+              <input type="text" id="newLionId" placeholder="Lion ID">
+            </div>
+            <div>
+              <label><b>Club Type:</b></label>
+              <input type="text" id="newClubType" placeholder="New / Regular / Specialty">
+            </div>
+            <div>
+              <label><b>Active Member Count:</b></label>
+              <input type="number" id="newActiveMembers" placeholder="0">
+            </div>
+            <div>
+              <label><b>International Dues Amount (USD):</b></label>
+              <input type="number" id="newIntlDues" placeholder="0">
+            </div>
+            <div>
+              <label><b>District Dues Amount (NPR):</b></label>
+              <input type="number" id="newDistrictDues" placeholder="0">
+            </div>
+            <div>
+              <label><b>WhatsApp Number:</b></label>
+              <input type="tel" id="newWhatsApp" placeholder="97798XXXXXXXX">
+            </div>
+            <div>
+              <label><b>Submitted By:</b></label>
+              <input type="text" id="newSubmittedBy" placeholder="नाम">
+            </div>
+            <div>
+              <label><b>Contact Number:</b></label>
+              <input type="tel" id="newContactNumber" placeholder="सम्पर्क नम्बर">
+            </div>
+            <div class="full">
+              <button id="addClubBtn" class="primary-btn" style="background:#D4AF37; color:#003366; font-weight:800;" onclick="submitAddNewClub()">Add New Club</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-report-panel" id="adminReportPanel">
+        <h3>📊 Dues Report</h3>
+        <div class="report-controls">
+          <div>
+            <label><b>Dues Type:</b></label>
+            <select id="reportDuesType">
+              <option value="International">International</option>
+              <option value="District">District</option>
+              <option value="Both">Both</option>
+            </select>
+          </div>
+          <div>
+            <label><b>Status:</b></label>
+            <select id="reportStatus">
+              <option value="Paid">Paid</option>
+              <option value="Unpaid">Unpaid</option>
+              <option value="Pending Verification">Pending Verification</option>
+              <option value="All">All</option>
+            </select>
+          </div>
+          <div>
+            <button class="primary-btn" onclick="renderAdminReport()">View Report</button>
+          </div>
+        </div>
+        <div class="report-table-wrap">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Club</th>
+                <th>Lion ID</th>
+                <th>Dues Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Submitted By</th>
+                <th>Contact</th>
+              </tr>
+            </thead>
+            <tbody id="adminReportBody">
+              <tr><td colspan="7" class="request-empty">Report हेर्न माथिको option छानी View Report थिच्नुहोस् ।</td></tr>
             </tbody>
           </table>
         </div>
@@ -326,6 +437,7 @@ async function loadData(options = {}) {
 
     if (adminLoggedIn) {
       renderPaymentRequests();
+      if (document.getElementById("adminReportBody")) renderAdminReport();
       if (adminFormVisible && previousSelectedClub) {
         document.getElementById("adminClubSelect").value = previousSelectedClub;
         loadClubToAdminForm();
@@ -389,8 +501,19 @@ function saveRateAndProceed() {
   openDetailsModal();
 }
 
+function getStatusValue(value) {
+  const v = String(value || "").trim();
+  return v || "Unpaid";
+}
+
+function isPayableStatus(value) {
+  return getStatusValue(value) === "Unpaid";
+}
+
 function openDetailsModal() {
   const club = selectedClubForUser;
+  const intlStatus = getStatusValue(club["Payment Status"]);
+  const districtStatus = getStatusValue(club["District Payment Status"]);
 
   document.getElementById("mClubName").innerText = club["Club Name"] || "";
   document.getElementById("mLionId").innerText = club["Lion ID"] || "";
@@ -399,29 +522,52 @@ function openDetailsModal() {
   document.getElementById("mNewCount").innerText = club["New Member"] || 0;
 
   const intlNpr = (parseFloat(club["International Due Amount"]) || 0) * chosenDollarRate;
-  const distNpr = (parseFloat(club["Active Member Count"]) || 0) * 1265;
-  const newNpr = (parseFloat(club["New Member"]) || 0) * 100;
-  const total = intlNpr + distNpr + newNpr;
+  const fallbackDistNpr = ((parseFloat(club["Active Member Count"]) || 0) * 1265) + ((parseFloat(club["New Member"]) || 0) * 100);
+  const distNpr = parseFloat(club["District Due Amount"]) || fallbackDistNpr;
+  const newNpr = parseFloat(club["New Member"]) || 0;
+  const total = intlNpr + distNpr;
 
   document.getElementById("mIntlUsd").innerText = club["International Due Amount"] || 0;
   document.getElementById("mCurrentRate").innerText = chosenDollarRate;
   document.getElementById("mIntlNpr").innerText = intlNpr.toLocaleString();
-  document.getElementById("mIntlStatus").innerText = club["Payment Status"] || "Unpaid";
+  document.getElementById("mIntlStatus").innerText = intlStatus;
 
   document.getElementById("mDistrictCalc").innerText = club["Active Member Count"] || 0;
   document.getElementById("mDistrictNpr").innerText = distNpr.toLocaleString();
-  document.getElementById("mDistrictStatus").innerText = club["District Payment Status"] || "Unpaid";
+  document.getElementById("mDistrictStatus").innerText = districtStatus;
 
   document.getElementById("mNewCalc").innerText = club["New Member"] || 0;
   document.getElementById("mNewNpr").innerText = newNpr.toLocaleString();
   document.getElementById("mTotalNpr").innerText = total.toLocaleString();
 
-  if (club["Payment Status"] === "Paid" && club["District Payment Status"] === "Paid") {
+  const chkIntl = document.getElementById("chkIntl");
+  const chkDist = document.getElementById("chkDist");
+  const intlPayable = isPayableStatus(intlStatus);
+  const distPayable = isPayableStatus(districtStatus);
+
+  chkIntl.checked = intlPayable;
+  chkIntl.disabled = !intlPayable;
+  chkDist.checked = distPayable;
+  chkDist.disabled = !distPayable;
+
+  let lockMsg = document.getElementById("paymentLockMsg");
+  if (!lockMsg) {
+    lockMsg = document.createElement("div");
+    lockMsg.id = "paymentLockMsg";
+    lockMsg.style.cssText = "font-size:13px;color:#e67e22;background:#fff8e6;padding:8px;border-radius:6px;margin:8px 0;";
+    document.querySelector(".checkbox-group").after(lockMsg);
+  }
+
+  const notes = [];
+  if (!intlPayable) notes.push("International Dues: " + intlStatus + " भएकाले फेरि submit गर्न मिल्दैन।");
+  if (!distPayable) notes.push("District Dues: " + districtStatus + " भएकाले फेरि submit गर्न मिल्दैन।");
+  lockMsg.innerHTML = notes.length ? notes.join("<br>") : "";
+  lockMsg.style.display = notes.length ? "block" : "none";
+
+  if (!intlPayable && !distPayable) {
     document.getElementById("paymentSection").style.display = "none";
   } else {
     document.getElementById("paymentSection").style.display = "block";
-    document.getElementById("chkIntl").checked = club["Payment Status"] !== "Paid";
-    document.getElementById("chkDist").checked = club["District Payment Status"] !== "Paid";
     recalcTotalToPay();
   }
 
@@ -434,42 +580,37 @@ function closeDetailsModal() {
 
 function recalcTotalToPay() {
   if (!selectedClubForUser) return;
-
   let amt = 0;
-
-  if (document.getElementById("chkIntl").checked) {
+  if (document.getElementById("chkIntl").checked && !document.getElementById("chkIntl").disabled) {
     amt += (parseFloat(selectedClubForUser["International Due Amount"]) || 0) * chosenDollarRate;
   }
-
-  if (document.getElementById("chkDist").checked) {
-    amt += (parseFloat(selectedClubForUser["Active Member Count"]) || 0) * 1265;
-    amt += (parseFloat(selectedClubForUser["New Member"]) || 0) * 100;
+  if (document.getElementById("chkDist").checked && !document.getElementById("chkDist").disabled) {
+    const fallbackDistNpr = ((parseFloat(selectedClubForUser["Active Member Count"]) || 0) * 1265) + ((parseFloat(selectedClubForUser["New Member"]) || 0) * 100);
+    amt += parseFloat(selectedClubForUser["District Due Amount"]) || fallbackDistNpr;
   }
-
   document.getElementById("payAmountText").innerText = amt.toLocaleString();
 }
 
 async function submitUserPayment() {
   const senderName = document.getElementById("voucherSenderName").value.trim();
   const senderPhone = document.getElementById("voucherSenderPhone").value.trim();
+  if (!senderName) { alert("कृपया भौचर पठाउने व्यक्तिको नाम राख्नुहोस् ।"); return; }
+  if (!senderPhone) { alert("कृपया सम्पर्क नम्बर राख्नुहोस् ।"); return; }
 
-  if (!senderName) {
-    alert("कृपया भौचर पठाउने व्यक्तिको नाम राख्नुहोस् ।");
-    return;
-  }
-
-  if (!senderPhone) {
-    alert("कृपया सम्पर्क नम्बर राख्नुहोस् ।");
-    return;
-  }
-
-  const chkIntl = document.getElementById("chkIntl").checked;
-  const chkDist = document.getElementById("chkDist").checked;
+  const chkIntlEl = document.getElementById("chkIntl");
+  const chkDistEl = document.getElementById("chkDist");
+  const chkIntl = chkIntlEl.checked && !chkIntlEl.disabled;
+  const chkDist = chkDistEl.checked && !chkDistEl.disabled;
 
   if (!chkIntl && !chkDist) {
-    alert("कृपया कम्तीमा एउटा शीर्षक छान्नुहोस् ।");
+    alert("यो क्लबको चयन गरिएको dues Paid वा Pending Verification मा छ। फेरि submit गर्न मिल्दैन।");
     return;
   }
+
+  const intlStatus = getStatusValue(selectedClubForUser["Payment Status"]);
+  const distStatus = getStatusValue(selectedClubForUser["District Payment Status"]);
+  if (chkIntl && intlStatus !== "Unpaid") { alert("International Dues पहिले नै " + intlStatus + " छ।"); return; }
+  if (chkDist && distStatus !== "Unpaid") { alert("District Dues पहिले नै " + distStatus + " छ।"); return; }
 
   let selectedDuesText = "";
   if (chkIntl && chkDist) selectedDuesText = "International Dues र District Dues";
@@ -477,19 +618,13 @@ async function submitUserPayment() {
   else selectedDuesText = "District Dues";
 
   const payAmount = document.getElementById("payAmountText").innerText || "0";
+  setBtnLoading("submitPaymentBtn", "⏳ Sheet अपडेट हुँदैछ...", "WhatsApp मा विवरण पठाउनुहोस्", true);
 
-  setBtnLoading("submitPaymentBtn", "⏳ Database अपडेट हुँदैछ...", "WhatsApp मा विवरण पठाउनुहोस्", true);
-
-  // WhatsApp popup block नहोस् भनेर user click कै समयमा blank tab reserve गर्ने
   let reservedWhatsAppWindow = null;
   try {
     reservedWhatsAppWindow = window.open("", "_blank");
-    if (reservedWhatsAppWindow) {
-      reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>पहिले Database अपडेट हुँदैछ... त्यसपछि WhatsApp खुल्छ ।</p>");
-    }
-  } catch (e) {
-    reservedWhatsAppWindow = null;
-  }
+    if (reservedWhatsAppWindow) reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>पहिले Google Sheet अपडेट हुँदैछ... त्यसपछि WhatsApp खुल्छ।</p>");
+  } catch (e) { reservedWhatsAppWindow = null; }
 
   try {
     const payload = {
@@ -505,10 +640,9 @@ async function submitUserPayment() {
     };
 
     const result = await postData(payload);
-
     if (result.status !== "success") {
       if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
-      alert(result.message || "Google Sheet update failed भयो ।");
+      alert(result.message || "Google Sheet update failed भयो।");
       return;
     }
 
@@ -522,15 +656,12 @@ async function submitUserPayment() {
       `भौचर पठाउने व्यक्तिको विवरण:\n` +
       `*नाम:* ${senderName}\n` +
       `*सम्पर्क नम्बर:* ${senderPhone}\n\n` +
-      `मैले भुक्तानी भौचर WhatsApp मार्फत पठाएको/पठाउँदैछु । System मा Pending Verification छ । कृपया विवरण चेक गरी मेरो क्लबको भुक्तानी Approve गरिदिनुहोला ।`;
+      `मैले भुक्तानी भौचर WhatsApp मार्फत पठाएको/पठाउँदैछु । Google Sheet मा Pending Verification राखिएको छ। कृपया विवरण चेक गरी Admin बाट Approve गरिदिनुहोला ।\n\nलायन कृष्ण ज्योती शाक्य\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
 
-    const waUrl = buildWhatsAppUrl(waNumber, waMessage);
-
-    alert(result.message || "Database update भयो । अब WhatsApp खुल्छ ।");
+    alert(result.message || "Sheet update भयो। अब WhatsApp खुल्छ।");
     closeDetailsModal();
-    loadData();
-    openWhatsAppReliable(waUrl, reservedWhatsAppWindow);
-
+    await loadData({ silent: true });
+    openWhatsAppReliable(buildWhatsAppUrl(waNumber, waMessage), reservedWhatsAppWindow);
   } catch (err) {
     if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
     alert("Submit error: " + err.toString());
@@ -553,7 +684,7 @@ async function checkAdminLogin() {
   const pass = document.getElementById("adminPass").value.trim();
 
   if (!user || !pass) {
-    alert("Username र Password राख्नुहोस् ।");
+    alert("Username र Password राख्नुहोस्।");
     return;
   }
 
@@ -572,7 +703,7 @@ async function checkAdminLogin() {
       adminLoggedIn = true;
       renderPaymentRequests();
       startAdminAutoRefresh();
-      alert(result.message || "एड्मिन लगइन सफल भयो ।");
+      alert(result.message || "एड्मिन लगइन सफल भयो।");
     } else {
       alert(result.message || "Login failed.");
     }
@@ -646,7 +777,7 @@ async function submitAdminUpdate() {
     try {
       reservedWhatsAppWindow = window.open("", "_blank");
       if (reservedWhatsAppWindow) {
-        reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>WhatsApp खोलिँदैछ... कृपया पर्खनुहोस् ।</p>");
+        reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>WhatsApp खोलिँदैछ... कृपया पर्खनुहोस्।</p>");
       }
     } catch (e) {
       reservedWhatsAppWindow = null;
@@ -681,7 +812,7 @@ async function submitAdminUpdate() {
       }
     } else {
       if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
-      alert(result.message || "Update failed भयो ।");
+      alert(result.message || "Update failed भयो।");
     }
   } catch (err) {
     if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
@@ -708,7 +839,7 @@ function renderPaymentRequests() {
   tbody.innerHTML = "";
 
   if (requests.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन ।</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन।</td></tr>`;
     return;
   }
 
@@ -743,11 +874,11 @@ function formatDisplayDate(value) {
 async function approvePaymentRequest(lionId) {
   const club = globalClubs.find(c => String(c["Lion ID"]) === String(lionId));
   if (!club) {
-    alert("क्लब फेला परेन ।");
+    alert("क्लब फेला परेन।");
     return;
   }
 
-  const ok = confirm(`${club["Club Name"]} को pending payment approve गर्ने हो ?`);
+  const ok = confirm(`${club["Club Name"]} को pending payment approve गर्ने हो?`);
   if (!ok) return;
 
   try {
@@ -767,6 +898,51 @@ async function approvePaymentRequest(lionId) {
   }
 }
 
+
+function renderAdminReport() {
+  const tbody = document.getElementById("adminReportBody");
+  if (!tbody) return;
+  const duesType = document.getElementById("reportDuesType").value;
+  const statusFilter = document.getElementById("reportStatus").value;
+  const rows = [];
+
+  globalClubs.forEach(club => {
+    if (duesType === "International" || duesType === "Both") {
+      const st = getStatusValue(club["Payment Status"]);
+      if (statusFilter === "All" || st === statusFilter) {
+        rows.push({ club, type: "International", amount: club["International Due Amount"] || 0, status: st });
+      }
+    }
+    if (duesType === "District" || duesType === "Both") {
+      const st = getStatusValue(club["District Payment Status"]);
+      if (statusFilter === "All" || st === statusFilter) {
+        const fallbackDistNpr = ((parseFloat(club["Active Member Count"]) || 0) * 1265) + ((parseFloat(club["New Member"]) || 0) * 100);
+        rows.push({ club, type: "District", amount: club["District Due Amount"] || fallbackDistNpr, status: st });
+      }
+    }
+  });
+
+  tbody.innerHTML = "";
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="request-empty">यो filter अनुसार कुनै data भेटिएन ।</td></tr>`;
+    return;
+  }
+
+  rows.forEach(item => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><b>${item.club["Club Name"] || ""}</b></td>
+      <td>${item.club["Lion ID"] || ""}</td>
+      <td>${item.type}</td>
+      <td>${item.amount}</td>
+      <td>${item.status}</td>
+      <td>${item.club["Submitted By"] || ""}</td>
+      <td>${item.club["Contact Number"] || ""}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 function startAdminAutoRefresh() {
   stopAdminAutoRefresh();
   adminAutoRefreshTimer = setInterval(function() {
@@ -780,6 +956,73 @@ function stopAdminAutoRefresh() {
   if (adminAutoRefreshTimer) {
     clearInterval(adminAutoRefreshTimer);
     adminAutoRefreshTimer = null;
+  }
+}
+
+
+function toggleAddClubForm() {
+  const box = document.getElementById("addClubFormBox");
+  if (!box) return;
+  box.style.display = box.style.display === "none" ? "block" : "none";
+}
+
+function clearAddClubForm() {
+  ["newClubName", "newLionId", "newClubType", "newActiveMembers", "newIntlDues", "newDistrictDues", "newWhatsApp", "newSubmittedBy", "newContactNumber"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+}
+
+async function submitAddNewClub() {
+  const clubName = document.getElementById("newClubName").value.trim().toUpperCase();
+  const lionId = document.getElementById("newLionId").value.trim();
+  const clubType = document.getElementById("newClubType").value.trim();
+  const activeMembers = document.getElementById("newActiveMembers").value.trim();
+  const intlDues = document.getElementById("newIntlDues").value.trim();
+  const districtDues = document.getElementById("newDistrictDues").value.trim();
+  const whatsappNumber = document.getElementById("newWhatsApp").value.trim().replace(/[-+ \s]/g, "");
+  const submittedBy = document.getElementById("newSubmittedBy").value.trim();
+  const contactNumber = document.getElementById("newContactNumber").value.trim();
+
+  if (!clubName) { alert("Club Name राख्नुहोस्।"); return; }
+  if (!lionId) { alert("Lion ID राख्नुहोस्।"); return; }
+  if (!clubType) { alert("Club Type राख्नुहोस्।"); return; }
+  if (!activeMembers) { alert("Active Member Count राख्नुहोस्।"); return; }
+  if (!intlDues) { alert("International Dues Amount राख्नुहोस्।"); return; }
+  if (!districtDues) { alert("District Dues Amount राख्नुहोस्।"); return; }
+  if (!whatsappNumber) { alert("WhatsApp Number राख्नुहोस्।"); return; }
+
+  const ok = confirm(clubName + " नयाँ क्लब थप्ने हो? International Dues Paid र District Dues Unpaid राखिन्छ।");
+  if (!ok) return;
+
+  setBtnLoading("addClubBtn", "⏳ Adding...", "Add New Club", true);
+  try {
+    const result = await postData({
+      actionType: "add_new_club",
+      clubName: clubName,
+      lionId: lionId,
+      clubType: clubType,
+      activeMembers: activeMembers,
+      intlDues: intlDues,
+      districtDues: districtDues,
+      whatsappNumber: whatsappNumber,
+      submittedBy: submittedBy,
+      contactNumber: contactNumber
+    });
+
+    if (result.status === "success") {
+      alert(result.message || "नयाँ क्लब थपियो।");
+      clearAddClubForm();
+      await loadData({ silent: true });
+      renderPaymentRequests();
+      renderAdminReport();
+    } else {
+      alert(result.message || "नयाँ क्लब थप्न सकेन।");
+    }
+  } catch (err) {
+    alert("Add Club error: " + err.toString());
+  } finally {
+    setBtnLoading("addClubBtn", "⏳ Adding...", "Add New Club", false);
   }
 }
 
@@ -806,8 +1049,8 @@ function buildWhatsAppUrl(phone, message) {
 }
 
 function openWhatsAppReliable(waUrl, reservedWindow) {
-  // Submit click कै समयमा खोलिएको blank tab/window लाई पछि WhatsApp URL दिने हो ।
-  // यसले mobile/browser popup block समस्या हटाउँछ ।
+  // Submit click कै समयमा खोलिएको blank tab/window लाई पछि WhatsApp URL दिने हो।
+  // यसले mobile/browser popup block समस्या हटाउँछ।
   try {
     if (reservedWindow && !reservedWindow.closed) {
       reservedWindow.location.href = waUrl;
