@@ -314,7 +314,7 @@ function renderTable() {
 
 function triggerClubClick(club) {
   selectedClubForUser = club;
-  chosenDollarRate = parseFloat(club["__exchangeRate"]) || chosenDollarRate || 0;
+  chosenDollarRate = parseFloat(club["__effectiveIntlRate"] || club["__exchangeRate"]) || chosenDollarRate || 0;
   openDetailsModal();
 }
 
@@ -339,7 +339,7 @@ function isPayableStatus(value) {
 
 function openDetailsModal() {
   const club = selectedClubForUser;
-  chosenDollarRate = parseFloat(club["__exchangeRate"]) || chosenDollarRate || 0;
+  chosenDollarRate = parseFloat(club["__effectiveIntlRate"] || club["__exchangeRate"]) || chosenDollarRate || 0;
   if (!chosenDollarRate) {
     alert('Exchange Rate sheet मा valid Rate छैन। A1 मा "Rate" र B1 मा rate value राख्नुहोस्।');
     return;
@@ -354,9 +354,10 @@ function openDetailsModal() {
   document.getElementById("mNewCount").innerText = club["New Member"] || 0;
 
   const intlNpr = (parseFloat(club["International Due Amount"]) || 0) * chosenDollarRate;
-  const fallbackDistNpr = ((parseFloat(club["Active Member Count"]) || 0) * 1265) + ((parseFloat(club["New Member"]) || 0) * 100);
-  const distNpr = parseFloat(club["District Due Amount"]) || fallbackDistNpr;
-  const newNpr = parseFloat(club["New Member"]) || 0;
+  const distBaseNpr = parseFloat(club["District Due Amount"]) || 0;
+  const newMemberCount = parseFloat(club["New Member"]) || 0;
+  const newNpr = newMemberCount * 100;
+  const distNpr = distBaseNpr + newNpr;
   const total = intlNpr + distNpr;
 
   document.getElementById("mIntlUsd").innerText = club["International Due Amount"] || 0;
@@ -417,8 +418,9 @@ function recalcTotalToPay() {
     amt += (parseFloat(selectedClubForUser["International Due Amount"]) || 0) * chosenDollarRate;
   }
   if (document.getElementById("chkDist").checked && !document.getElementById("chkDist").disabled) {
-    const fallbackDistNpr = ((parseFloat(selectedClubForUser["Active Member Count"]) || 0) * 1265) + ((parseFloat(selectedClubForUser["New Member"]) || 0) * 100);
-    amt += parseFloat(selectedClubForUser["District Due Amount"]) || fallbackDistNpr;
+    const distBaseNpr = parseFloat(selectedClubForUser["District Due Amount"]) || 0;
+    const newMemberFee = (parseFloat(selectedClubForUser["New Member"]) || 0) * 100;
+    amt += distBaseNpr + newMemberFee;
   }
   document.getElementById("payAmountText").innerText = amt.toLocaleString();
 }
