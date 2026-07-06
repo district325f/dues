@@ -155,7 +155,7 @@ body { margin:0; }
     </div>
 
     <div class="dashboard-summary-panel" id="dashboardSummaryPanel">
-      <h3>📊 Dashboard Summary</h3>
+      <h3>📊 Dashboard Summary <span style="font-size:12px;color:#4f5d75;">($ Rate: <span id="sumExchangeRate">-</span>)</span></h3>
       <div class="summary-grid">
         <div class="summary-card"><div class="label">Paid Clubs</div><div class="num" id="sumPaidClubs">0</div></div>
         <div class="summary-card"><div class="label">Pending</div><div class="num" id="sumPendingClubs">0</div></div>
@@ -392,13 +392,15 @@ function formatMoney(n) {
 
 function renderDashboardSummary() {
   const total = globalClubs.length;
+  const currentRate = globalClubs.length ? (numberValue(globalClubs[0]["__exchangeRate"]) || 135) : 135;
   let paid = 0, pending = 0, unpaid = 0;
   let intlCollection = 0, distCollection = 0, intlOutstanding = 0, distOutstanding = 0;
 
   globalClubs.forEach(club => {
     const intlStatus = getStatusValue(club["Payment Status"]);
     const distStatus = getStatusValue(club["District Payment Status"]);
-    const intlAmountNpr = numberValue(club["International Due Amount"]) * 135;
+    const rate = numberValue(club["__exchangeRate"]) || 135;
+    const intlAmountNpr = numberValue(club["International Due Amount"]) * rate;
     const fallbackDist = (numberValue(club["Active Member Count"]) * 1265) + (numberValue(club["New Member"]) * 100);
     const distAmount = numberValue(club["District Due Amount"]) || fallbackDist;
 
@@ -414,6 +416,7 @@ function renderDashboardSummary() {
   });
 
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+  set("sumExchangeRate", currentRate);
   set("sumPaidClubs", paid);
   set("sumPendingClubs", pending);
   set("sumUnpaidClubs", unpaid);
