@@ -142,8 +142,8 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 <div id="rateModal" class="modal">
   <div class="modal-content" style="max-width:400px; text-align:center;">
     <span class="close" onclick="closeRateModal()">&times;</span>
-    <h3 style="color:#003366;">Exchange Rate Required</h3>
-    <p style="font-size:14px; color:#4f5d75;">कृपया यस महिनाको लायन्स एक्सचेन्ज रेट ($1 = NPR) राख्नुहोस्:</p>
+    <h3 style="color:#003366;">Exchange Rate From Sheet</h3>
+    <p style="font-size:14px; color:#4f5d75;">लायन्स एक्सचेन्ज रेट Google Sheet को "Exchange Rate" sheet बाट लिइन्छ।</p>
     <input type="number" id="tempDollarRate" value="135" style="text-align:center; font-size:24px; font-weight:bold; color:#e74c3c;">
     <button class="primary-btn" onclick="saveRateAndProceed()">अघि बढ्नुहोस् (Proceed)</button>
   </div>
@@ -247,7 +247,11 @@ async function loadData(options = {}) {
     const adminFormVisible = document.getElementById("adminForm") && document.getElementById("adminForm").style.display === "block";
 
     const res = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
-    globalClubs = await res.json();
+    const data = await res.json();
+    globalClubs = Array.isArray(data) ? data : (data.clubs || []);
+    if (globalClubs.length && globalClubs[0]["__exchangeRate"]) {
+      chosenDollarRate = parseFloat(globalClubs[0]["__exchangeRate"]) || 135;
+    }
 
     renderTable();
     populateAdminDropdown(previousSelectedClub);
@@ -305,7 +309,8 @@ function renderTable() {
 
 function triggerClubClick(club) {
   selectedClubForUser = club;
-  document.getElementById("rateModal").style.display = "block";
+  chosenDollarRate = parseFloat(club["__exchangeRate"]) || chosenDollarRate || 135;
+  openDetailsModal();
 }
 
 function closeRateModal() {
