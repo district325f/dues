@@ -265,7 +265,8 @@ async function postData(payload) {
   const res = await fetch(SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    keepalive: true
   });
   return await res.json();
 }
@@ -491,58 +492,55 @@ async function submitUserPayment() {
   else selectedDuesText = "District Dues";
 
   const payAmount = document.getElementById("payAmountText").innerText || "0";
-  setBtnLoading("submitPaymentBtn", "⏳ Database अपडेट हुँदैछ...", "WhatsApp मा विवरण पठाउनुहोस्", true);
+  const waNumber = "9779851030055";
 
-  let reservedWhatsAppWindow = null;
-  try {
-    reservedWhatsAppWindow = window.open("", "_blank");
-    if (reservedWhatsAppWindow) reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>पहिले Database अपडेट हुँदैछ... त्यसपछि WhatsApp खुल्छ ।</p>");
-  } catch (e) { reservedWhatsAppWindow = null; }
+  const waMessage =
+    `नमस्ते लायन कृष्ण ज्योती शाक्य ज्यू,\n\n` +
+    `*Club Name:* ${selectedClubForUser["Club Name"]}\n` +
+    `*Lion ID:* ${selectedClubForUser["Lion ID"]}\n` +
+    `*भुक्तानी शीर्षक:* ${selectedDuesText}\n` +
+    `*रकम:* रु. ${payAmount}\n\n` +
+    `भौचर पठाउने व्यक्तिको विवरण:\n` +
+    `*नाम:* ${senderName}\n` +
+    `*सम्पर्क नम्बर:* ${senderPhone}\n\n` +
+    `मैले भुक्तानी भौचर WhatsApp मार्फत पठाएको/पठाउँदैछु । System मा Pending Verification छ । कृपया विवरण चेक गरी मेरो क्लबको भुक्तानी Approve गरिदिनुहोला ।`;
 
-  try {
-    const payload = {
-      actionType: "user_payment",
-      lionId: selectedClubForUser["Lion ID"],
-      transactionId: "MANUAL_VOUCHER_" + new Date().getTime(),
-      payInternational: chkIntl,
-      payDistrict: chkDist,
-      senderName: senderName,
-      senderPhone: senderPhone,
-      selectedDuesText: selectedDuesText,
-      payAmount: payAmount
-    };
+  const payload = {
+    actionType: "user_payment",
+    lionId: selectedClubForUser["Lion ID"],
+    transactionId: "MANUAL_VOUCHER_" + new Date().getTime(),
+    payInternational: chkIntl,
+    payDistrict: chkDist,
+    senderName: senderName,
+    senderPhone: senderPhone,
+    selectedDuesText: selectedDuesText,
+    payAmount: payAmount
+  };
 
-    const result = await postData(payload);
-    if (result.status !== "success") {
-      if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
-      alert(result.message || "Database update failed भयो ।");
-      return;
-    }
+  setBtnLoading("submitPaymentBtn", "✅ WhatsApp खोलिँदैछ...", "WhatsApp मा विवरण पठाउनुहोस्", true);
 
-    const waNumber = "9779851030055";
-    const waMessage =
-      `नमस्ते लायन कृष्ण ज्योती शाक्य ज्यू,\n\n` +
-      `*Club Name:* ${selectedClubForUser["Club Name"]}\n` +
-      `*Lion ID:* ${selectedClubForUser["Lion ID"]}\n` +
-      `*भुक्तानी शीर्षक:* ${selectedDuesText}\n` +
-      `*रकम:* रु. ${payAmount}\n\n` +
-      `भौचर पठाउने व्यक्तिको विवरण:\n` +
-      `*नाम:* ${senderName}\n` +
-      `*सम्पर्क नम्बर:* ${senderPhone}\n\n` +
-      `मैले भुक्तानी भौचर WhatsApp मार्फत पठाएको/पठाउँदैछु । System मा Pending Verification छ । कृपया विवरण चेक गरी मेरो क्लबको भुक्तानी Approve गरिदिनुहोला ।`;
+  postData(payload)
+    .then(async function(result) {
+      if (result && result.status === "success") {
+        try {
+          closeDetailsModal();
+          await loadData({ silent: true });
+        } catch (e) {}
+      } else {
+        alert((result && result.message) ? result.message : "Google Sheet update failed भयो ।");
+      }
+    })
+    .catch(function(err) {
+      alert("Sheet save error: " + err.toString());
+    })
+    .finally(function() {
+      setTimeout(function() {
+        setBtnLoading("submitPaymentBtn", "✅ WhatsApp खोलिँदैछ...", "WhatsApp मा विवरण पठाउनुहोस्", false);
+      }, 2500);
+    });
 
-    alert(result.message || "Database update भयो । अब WhatsApp खुल्छ ।");
-    closeDetailsModal();
-    await loadData({ silent: true });
-    openWhatsAppReliable(buildWhatsAppUrl(waNumber, waMessage), reservedWhatsAppWindow);
-  } catch (err) {
-    if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
-    alert("Submit error: " + err.toString());
-  } finally {
-    setBtnLoading("submitPaymentBtn", "⏳ Database अपडेट हुँदैछ...", "WhatsApp मा विवरण पठाउनुहोस्", false);
-  }
+  openWhatsAppFast(waNumber, waMessage);
 }
-
 function openAdminModal() {
   document.getElementById("adminModal").style.display = "block";
 }
@@ -918,12 +916,28 @@ function sendAdminDuesReminder() {
 
 function buildWhatsAppUrl(phone, message) {
   const cleanPhone = String(phone || "").replace(/[^0-9]/g, "");
-  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+  return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
+}
+
+function openWhatsAppFast(phone, message) {
+  const cleanPhone = String(phone || "").replace(/[^0-9]/g, "");
+  const encoded = encodeURIComponent(message);
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+  const appUrl = `whatsapp://send?phone=${cleanPhone}&text=${encoded}`;
+  const webUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encoded}`;
+
+  if (isMobile) {
+    window.location.href = appUrl;
+    setTimeout(function() {
+      window.location.href = webUrl;
+    }, 1500);
+  } else {
+    window.open(webUrl, "_blank");
+  }
 }
 
 function openWhatsAppReliable(waUrl, reservedWindow) {
-  // Submit click कै समयमा खोलिएको blank tab/window लाई पछि WhatsApp URL दिने हो ।
-  // यसले mobile/browser popup block समस्या हटाउँछ ।
   try {
     if (reservedWindow && !reservedWindow.closed) {
       reservedWindow.location.href = waUrl;
@@ -931,9 +945,8 @@ function openWhatsAppReliable(waUrl, reservedWindow) {
     }
   } catch (e) {}
 
-  // fallback: same page redirect
   try {
-    window.top.location.href = waUrl;
+    window.open(waUrl, "_blank");
   } catch (e) {
     window.location.href = waUrl;
   }
