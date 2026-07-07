@@ -65,6 +65,8 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 .request-note { font-size:13px; color:#4f5d75; margin:0 0 10px 0; }
 .requests-table-wrap { overflow-x:auto; }
 .requests-table th, .requests-table td { font-size:13px; padding:9px 8px; }
+.reject-btn { background:#e74c3c; color:white; border:none; padding:8px 10px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:700; width:auto; min-width:90px; margin-left:6px; }
+.reject-btn:hover { background:#c0392b; }
 .approve-btn { background:#2ecc71; color:white; border:none; padding:8px 10px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:700; width:auto; min-width:90px; }
 .approve-btn:hover { background:#27ae60; }
 .request-empty { text-align:center; padding:12px; color:#7f8c8d; background:white; border-radius:6px; }
@@ -574,7 +576,10 @@ function renderPaymentRequests() {
       <td>${club["Submitted By"] || ""}</td>
       <td>${club["Contact Number"] || ""}</td>
       <td>${formatDisplayDate(club["Payment Date"])}</td>
-      <td><button class="approve-btn" onclick="approvePaymentRequest('${String(club["Lion ID"] || "").replace(/'/g, "\\'")}')">Approve</button></td>
+      <td>
+        <button class="approve-btn" onclick="approvePaymentRequest('${String(club["Lion ID"] || "").replace(/'/g, "\\'")}')">Approve</button>
+        <button class="reject-btn" onclick="rejectPaymentRequest('${String(club["Lion ID"] || "").replace(/'/g, "\\'")}')">Reject</button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
@@ -611,6 +616,36 @@ async function approvePaymentRequest(lionId) {
     }
   } catch (err) {
     alert("Approve error: " + err.toString());
+  }
+}
+
+
+async function rejectPaymentRequest(lionId) {
+  const club = globalClubs.find(c => String(c["Lion ID"]) === String(lionId));
+  if (!club) {
+    alert("क्लब फेला परेन ।");
+    return;
+  }
+
+  const ok = confirm(`${club["Club Name"]} को pending payment request Reject गर्ने हो ?\n\nReject गरेपछि status फेरि Unpaid हुन्छ र pending request हट्छ।`);
+  if (!ok) return;
+
+  try {
+    const result = await postData({
+      actionType: "reject_request",
+      adminUser: (typeof getAdminUserName === "function" ? getAdminUserName() : "Admin"),
+      lionId: lionId
+    });
+
+    if (result.status === "success") {
+      alert(result.message || "Payment request Reject भयो ।");
+      await loadData({ silent: true });
+      if (typeof loadAuditLogs === "function") loadAuditLogs(true);
+    } else {
+      alert(result.message || "Reject failed भयो ।");
+    }
+  } catch (err) {
+    alert("Reject error: " + err.toString());
   }
 }
 
