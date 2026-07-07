@@ -418,9 +418,11 @@ function openDetailsModal() {
   const intlPayable = isPayableStatus(intlStatus);
   const distPayable = isPayableStatus(districtStatus);
 
-  chkIntl.checked = intlPayable;
+  // Default मा कुनै पनि dues auto selected हुँदैन।
+  // User आफैंले कुन dues तिर्ने हो टिक लगाउनुपर्छ।
+  chkIntl.checked = false;
   chkIntl.disabled = !intlPayable;
-  chkDist.checked = distPayable;
+  chkDist.checked = false;
   chkDist.disabled = !distPayable;
 
   let lockMsg = document.getElementById("paymentLockMsg");
@@ -477,8 +479,13 @@ async function submitUserPayment() {
   const chkDist = chkDistEl.checked && !chkDistEl.disabled;
 
   if (!chkIntl && !chkDist) {
-    alert("यो क्लबको चयन गरिएको dues Paid वा Pending Verification मा छ । फेरि submit गर्न मिल्दैन ।");
+    alert("कृपया कुन Dues तिर्न लाग्नुभएको हो टिक लगाउनुहोस् ।\nInternational Dues वा District Dues मध्ये कम्तीमा एउटा छान्नुहोस् ।");
     return;
+  }
+
+  if (chkIntl && chkDist) {
+    const bothOk = confirm("तपाईंले International Dues र District Dues दुबै छान्नुभएको छ ।\n\nके दुबै Dues को विवरण पठाउन चाहनुहुन्छ ?");
+    if (!bothOk) return;
   }
 
   const intlStatus = getStatusValue(selectedClubForUser["Payment Status"]);
