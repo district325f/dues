@@ -832,10 +832,13 @@ function downloadCurrentReportExcel() {
   try {
     const headers = ["Club Name", "Lion ID", "Dues Type", "Amount", "Status", "Submitted By", "Contact Number", "Payment Date"];
     let csv = "\ufeff" + headers.map(h => `"${h}"`).join(",") + "\\n";
+    let grandTotal = 0;
     currentReportRows.forEach(r => {
+      grandTotal += Number(r.amount || 0);
       const row = [r.clubName, r.lionId, r.duesType, Math.round(Number(r.amount || 0)), r.status, r.submittedBy, r.contactNumber, r.paymentDate];
       csv += row.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",") + "\\n";
     });
+    csv += `"","","","${Math.round(grandTotal)}","Grand Total","","",""\\n`;
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -922,6 +925,9 @@ async function downloadCurrentReportPDF() {
       return;
     }
 
+    let grandTotal = 0;
+    currentReportRows.forEach(r => grandTotal += Number(r.amount || 0));
+
     const body = currentReportRows.map(r => [
       r.clubName,
       r.lionId,
@@ -932,6 +938,7 @@ async function downloadCurrentReportPDF() {
       r.contactNumber,
       r.paymentDate
     ]);
+    body.push(["","","","", "", "", "Grand Total", Math.round(grandTotal).toLocaleString()]);
 
     doc.autoTable({
       startY: 125,
