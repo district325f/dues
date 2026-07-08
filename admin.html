@@ -74,7 +74,7 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 
 .admin-report-panel { margin-bottom:20px; padding:15px; background:#f8f9ff; border:2px solid #003366; border-radius:8px; }
 .admin-report-panel h3 { margin:0 0 10px 0; color:#003366; }
-.report-controls { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; align-items:end; }
+.report-controls { display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr; gap:10px; align-items:end; }
 .report-table-wrap { overflow-x:auto; margin-top:10px; }
 .report-table th, .report-table td { font-size:13px; padding:9px 8px; }
 .dashboard-summary-panel { margin-bottom:20px; padding:15px; background:#eef8ff; border:2px solid #3498db; border-radius:8px; }
@@ -115,6 +115,11 @@ tr:hover { background:#edf2f7; cursor:pointer; }
   th, td { padding:10px 8px; }
   .admin-action-row { flex-direction:column; }
 }
+
+.download-report-btn { background:#2ecc71; color:white; border:none; font-weight:800; cursor:pointer; }
+.download-report-btn.pdf { background:#e74c3c; }
+.download-report-btn:disabled { opacity:.7; cursor:not-allowed; }
+
 </style>
 <style>
 body { margin:0; }
@@ -130,6 +135,10 @@ body { margin:0; }
 .close-edit-btn { background:#95a5a6 !important; }
 @media(max-width:700px){ .admin-page-container { margin:8px; padding:14px; } .admin-page-header h2 { font-size:18px; } }
 </style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 
 </head>
 <body>
@@ -237,7 +246,7 @@ body { margin:0; }
       <div class="report-controls">
         <div><label><b>Dues Type:</b></label><select id="reportDuesType"><option value="International">International</option><option value="District">District</option><option value="Both">Both</option></select></div>
         <div><label><b>Status:</b></label><select id="reportStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="All">All</option></select></div>
-        <div><button class="primary-btn" id="viewReportBtn" onclick="renderAdminReport()">View Report</button></div>
+        <div><button class="primary-btn" id="viewReportBtn" onclick="renderAdminReport()">View Report</button><button class="download-report-btn" id="excelReportBtn" onclick="downloadCurrentReportExcel()">⬇ Excel</button><button class="download-report-btn pdf" id="pdfReportBtn" onclick="downloadCurrentReportPDF()">⬇ PDF</button></div>
       </div>
       <div class="report-table-wrap">
         <table class="report-table">
@@ -292,6 +301,7 @@ let oldDistrictStatus = "";
 let adminLoggedIn = localStorage.getItem("duesAdminLoggedIn") === "yes";
 let adminAutoRefreshTimer = null;
 let auditLogs = [];
+let currentReportRows = [];
 
 function setBtnLoading(btnId, loadingText, normalText, isLoading) {
   const btn = document.getElementById(btnId);
@@ -434,6 +444,164 @@ function isAdminEditing() {
   const form = document.getElementById("adminForm");
   const addBox = document.getElementById("addClubFormBox");
   return (form && form.style.display === "block") || (addBox && addBox.style.display === "block");
+}
+
+
+function getReportFileBaseName() {
+  const duesType = document.getElementById("reportDuesType") ? document.getElementById("reportDuesType").value : "Both";
+  const statusFilter = document.getElementById("reportStatus") ? document.getElementById("reportStatus").value : "All";
+  const dateStr = new Date().toISOString().slice(0, 10);
+  return `Dues_Report_${duesType}_${statusFilter}_${dateStr}`;
+}
+
+function ensureReportRowsReady() {
+  currentReportRows = buildFilteredReportRows();
+  if (!currentReportRows.length) {
+    alert("यो filter अनुसार download गर्ने data छैन। पहिले report filter मिलाएर View Report गर्नुहोस्।");
+    return false;
+  }
+  return true;
+}
+
+function downloadCurrentReportExcel() {
+  if (!ensureReportRowsReady()) return;
+
+  const btn = document.getElementById("excelReportBtn");
+  if (btn) { btn.disabled = true; btn.innerText = "⏳ Excel..."; }
+
+  const headers = ["Club Name", "Lion ID", "Dues Type", "Amount", "Status", "Submitted By", "Contact Number", "Payment Date"];
+  const rows = currentReportRows.map(r => [
+    r.clubName, r.lionId, r.duesType, Math.round(Number(r.amount || 0)), r.status, r.submittedBy, r.contactNumber, r.paymentDate
+  ]);
+
+  const htmlTable = `
+    <html><head><meta charset="UTF-8"></head><body>
+    <table border="1">
+      <tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>
+      ${rows.map(row => `<tr>${row.map(v => `<td>${String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</td>`).join("")}</tr>`).join("")}
+    </table>
+    </body></html>`;
+
+  const blob = new Blob([htmlTable], { type: "application/vnd.ms-excel;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = getReportFileBaseName() + ".xls";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  if (btn) { btn.disabled = false; btn.innerText = "⬇ Excel"; }
+}
+
+function loadImageAsDataURL(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = function() {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      } catch (e) {
+        resolve(null);
+      }
+    };
+    img.onerror = function() { resolve(null); };
+    img.src = src;
+  });
+}
+
+async function downloadCurrentReportPDF() {
+  if (!ensureReportRowsReady()) return;
+
+  const btn = document.getElementById("pdfReportBtn");
+  if (btn) { btn.disabled = true; btn.innerText = "⏳ PDF..."; }
+
+  try {
+    const { jsPDF } = window.jspdf || {};
+    if (!jsPDF) {
+      alert("PDF library load हुन सकेन। Internet connection check गरेर फेरि try गर्नुहोस्।");
+      if (btn) { btn.disabled = false; btn.innerText = "⬇ PDF"; }
+      return;
+    }
+
+    const duesType = document.getElementById("reportDuesType").value;
+    const statusFilter = document.getElementById("reportStatus").value;
+
+    const doc = new jsPDF("l", "pt", "a4");
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // PDF Header Design
+    const logoData = await loadImageAsDataURL("logo.png");
+    if (logoData) {
+      try { doc.addImage(logoData, "PNG", 40, 22, 55, 55); } catch (e) {}
+    }
+
+    doc.setFontSize(18);
+    doc.setTextColor(0, 51, 102);
+    doc.text("Lions International", pageWidth / 2, 32, { align: "center" });
+
+    doc.setFontSize(14);
+    doc.text("District 325 F", pageWidth / 2, 52, { align: "center" });
+
+    doc.setFontSize(16);
+    doc.setTextColor(212, 175, 55);
+    doc.text("Club Dues Report", pageWidth / 2, 74, { align: "center" });
+
+    doc.setDrawColor(0, 51, 102);
+    doc.setLineWidth(1);
+    doc.line(40, 88, pageWidth - 40, 88);
+
+    doc.setFontSize(10);
+    doc.setTextColor(44, 62, 80);
+    doc.text(`Dues Type: ${duesType}`, 40, 108);
+    doc.text(`Status: ${statusFilter}`, 180, 108);
+    doc.text(`Generated Date: ${new Date().toLocaleString()}`, 320, 108);
+
+    const body = currentReportRows.map(r => [
+      r.clubName,
+      r.lionId,
+      r.duesType,
+      Math.round(Number(r.amount || 0)).toLocaleString(),
+      r.status,
+      r.submittedBy,
+      r.contactNumber,
+      r.paymentDate
+    ]);
+
+    doc.autoTable({
+      startY: 125,
+      head: [["Club Name", "Lion ID", "Dues Type", "Amount", "Status", "Submitted By", "Contact", "Payment Date"]],
+      body: body,
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] },
+      alternateRowStyles: { fillColor: [248, 249, 250] },
+      columnStyles: {
+        0: { cellWidth: 170 },
+        1: { cellWidth: 70 },
+        2: { cellWidth: 80 },
+        3: { cellWidth: 70 },
+        4: { cellWidth: 85 }
+      },
+      didDrawPage: function(data) {
+        const pageHeight = doc.internal.pageSize.getHeight();
+        doc.setFontSize(8);
+        doc.setTextColor(120);
+        doc.text("Design by: Nirajan Aryal | Mobile: 9851113811", pageWidth / 2, pageHeight - 18, { align: "center" });
+      }
+    });
+
+    doc.save(getReportFileBaseName() + ".pdf");
+  } catch (err) {
+    alert("PDF download error: " + err.toString());
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerText = "⬇ PDF"; }
+  }
 }
 
 function startAdminAutoRefresh() {
