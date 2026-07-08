@@ -236,7 +236,7 @@ body { margin:0; }
       <div class="report-controls">
         <div><label><b>Dues Type:</b></label><select id="reportDuesType"><option value="International">International</option><option value="District">District</option><option value="Both">Both</option></select></div>
         <div><label><b>Status:</b></label><select id="reportStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="All">All</option></select></div>
-        <div><button class="primary-btn" onclick="renderAdminReport()">View Report</button></div>
+        <div><button class="primary-btn" id="viewReportBtn" onclick="renderAdminReport()">View Report</button></div>
       </div>
       <div class="report-table-wrap">
         <table class="report-table">
@@ -315,6 +315,7 @@ async function loadData(options = {}) {
       globalClubs = Array.isArray(data) ? data : (data.clubs || []);
     }
     sortGlobalClubsAlphabetically();
+    sortGlobalClubsAlphabetically();
     populateAdminDropdown(selected);
     filterAdminClubSearch();
     renderPaymentRequests();
@@ -354,7 +355,7 @@ async function checkAdminLogin() {
       localStorage.setItem("duesAdminUser", user);
       adminLoggedIn = true;
       showDashboard();
-      alert(result.message || "एड्मिन लगइन सफल भयो ।");
+      
     } else {
       alert(result.message || "Login failed.");
     }
@@ -436,9 +437,6 @@ function formatMoney(n) {
 function renderDashboardSummary() {
   const total = globalClubs.length;
   const currentRate = globalClubs.length ? numberValue(globalClubs[0]["__exchangeRate"]) : 0;
-  if (!currentRate && globalClubs.length) {
-    alert('Exchange Rate sheet मा valid Rate छैन। A1 मा "Rate" र B1 मा rate value राख्नुहोस्।');
-  }
 
   let intlPaid = 0, intlPending = 0, intlUnpaid = 0;
   let districtPaid = 0, districtPending = 0, districtUnpaid = 0;
@@ -457,37 +455,16 @@ function renderDashboardSummary() {
     const districtBaseAmount = numberValue(club["District Due Amount"]);
     const newMemberCount = numberValue(club["New Member"]);
     const newMemberFee = newMemberCount * 100;
-
     totalNewMemberCount += newMemberCount;
 
-    if (intlStatus === "Paid") {
-      intlPaid++;
-      intlCollection += intlAmountNpr;
-    } else {
-      if (intlStatus === "Pending Verification") intlPending++;
-      else intlUnpaid++;
-      intlOutstanding += intlAmountNpr;
-    }
+    if (intlStatus === "Paid") { intlPaid++; intlCollection += intlAmountNpr; }
+    else { if (intlStatus === "Pending Verification") intlPending++; else intlUnpaid++; intlOutstanding += intlAmountNpr; }
 
-    if (distStatus === "Paid") {
-      districtPaid++;
-      districtBaseCollection += districtBaseAmount;
-      newMemberCollection += newMemberFee;
-    } else {
-      if (distStatus === "Pending Verification") districtPending++;
-      else districtUnpaid++;
-      districtBaseOutstanding += districtBaseAmount;
-      newMemberOutstanding += newMemberFee;
-    }
+    if (distStatus === "Paid") { districtPaid++; districtBaseCollection += districtBaseAmount; newMemberCollection += newMemberFee; }
+    else { if (distStatus === "Pending Verification") districtPending++; else districtUnpaid++; districtBaseOutstanding += districtBaseAmount; newMemberOutstanding += newMemberFee; }
   });
 
-  const districtTotalCollection = districtBaseCollection + newMemberCollection;
-  const districtTotalOutstanding = districtBaseOutstanding + newMemberOutstanding;
-  const grandTotalCollection = intlCollection + districtTotalCollection;
-  const totalNewMemberFee = newMemberCollection + newMemberOutstanding;
-
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-
   set("sumExchangeRate", currentRate);
   set("sumTotalClubs", total);
 
@@ -505,14 +482,14 @@ function renderDashboardSummary() {
   set("sumDistrictUnpaid", districtUnpaid);
   set("sumDistrictCollection", formatMoney(districtBaseCollection));
   set("sumNewMemberCollection", formatMoney(newMemberCollection));
-  set("sumDistrictTotalCollection", formatMoney(districtTotalCollection));
+  set("sumDistrictTotalCollection", formatMoney(districtBaseCollection + newMemberCollection));
   set("sumDistrictOutstanding", formatMoney(districtBaseOutstanding));
   set("sumNewMemberOutstanding", formatMoney(newMemberOutstanding));
-  set("sumDistrictTotalOutstanding", formatMoney(districtTotalOutstanding));
+  set("sumDistrictTotalOutstanding", formatMoney(districtBaseOutstanding + newMemberOutstanding));
 
   set("sumNewMemberCount", totalNewMemberCount);
-  set("sumNewMemberTotalFee", formatMoney(totalNewMemberFee));
-  set("sumTotalCollection", formatMoney(grandTotalCollection));
+  set("sumNewMemberTotalFee", formatMoney(newMemberCollection + newMemberOutstanding));
+  set("sumTotalCollection", formatMoney(intlCollection + districtBaseCollection + newMemberCollection));
 }
 
 function filterAdminClubSearch() {
@@ -775,6 +752,8 @@ function loadClubToAdminForm() {
     document.getElementById("adminForm").style.display = "block";
     const unsavedNote = document.getElementById("unsavedStatusNote");
     if (unsavedNote) unsavedNote.style.display = "none";
+    const unsavedNote = document.getElementById("unsavedStatusNote");
+    if (unsavedNote) unsavedNote.style.display = "none";
   }
 }
 
@@ -798,19 +777,7 @@ async function submitAdminUpdate() {
   const newIntlStatus = document.getElementById("admIntlStatus").value;
   const newDistrictStatus = document.getElementById("admDistrictStatus").value;
 
-  const saveOk = confirm("के यो विवरण Google Sheet मा Save गर्ने हो?\n\nDropdown select गर्दा मात्र save हुँदैन। Save & Update Sheet थिचेपछि मात्र update हुन्छ।");
-  if (!saveOk) return;
-
-  let reservedWhatsAppWindow = null;
   const shouldOpenWhatsApp = targetPhone && (newIntlStatus !== oldIntlStatus || newDistrictStatus !== oldDistrictStatus);
-  if (shouldOpenWhatsApp) {
-    try {
-      reservedWhatsAppWindow = window.open("", "_blank");
-      if (reservedWhatsAppWindow) {
-        reservedWhatsAppWindow.document.write("<p style='font-family:Arial;padding:20px;'>WhatsApp खोलिँदैछ... कृपया पर्खनुहोस् ।</p>");
-      }
-    } catch (e) { reservedWhatsAppWindow = null; }
-  }
 
   setBtnLoading("adminSaveBtn", "⏳ Saving...", "Save & Update Sheet", true);
 
@@ -839,15 +806,13 @@ async function submitAdminUpdate() {
       if (shouldOpenWhatsApp) {
         const updateMsg = `तपाईँको क्लब *${cName}* को Dues सिस्टममा अपडेट भयो । धन्यवाद !\n\nलायन कृष्ण ज्योती शाक्य\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
         const waUrl = buildWhatsAppUrl(targetPhone, updateMsg);
-        openWhatsAppReliable(waUrl, reservedWhatsAppWindow);
+        openWhatsAppReliable(waUrl);
       }
       closeAdminEditForm();
     } else {
-      if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
       alert(result.message || "Update failed भयो ।");
     }
   } catch (err) {
-    if (reservedWhatsAppWindow && !reservedWhatsAppWindow.closed) reservedWhatsAppWindow.close();
     alert("Admin update error: " + err.toString());
   } finally {
     setBtnLoading("adminSaveBtn", "⏳ Saving...", "Save & Update Sheet", false);
