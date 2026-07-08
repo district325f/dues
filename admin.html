@@ -293,7 +293,7 @@ function setBtnLoading(btnId, loadingText, normalText, isLoading) {
   btn.innerText = isLoading ? loadingText : normalText;
 }
 
-async function postData(payload) {
+async async function postData(payload) {
   const res = await fetch(SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -314,7 +314,6 @@ async function loadData(options = {}) {
     } else {
       globalClubs = Array.isArray(data) ? data : (data.clubs || []);
     }
-    sortGlobalClubsAlphabetically();
     sortGlobalClubsAlphabetically();
     populateAdminDropdown(selected);
     filterAdminClubSearch();
@@ -355,7 +354,6 @@ async function checkAdminLogin() {
       localStorage.setItem("duesAdminUser", user);
       adminLoggedIn = true;
       showDashboard();
-      
     } else {
       alert(result.message || "Login failed.");
     }
