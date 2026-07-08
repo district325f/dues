@@ -321,6 +321,7 @@ async function loadData(options = {}) {
     } else {
       globalClubs = Array.isArray(data) ? data : (data.clubs || []);
     }
+    cleanValidClubsOnly();
     sortGlobalClubsAlphabetically();
     populateAdminDropdown(selected);
     filterAdminClubSearch();
@@ -392,6 +393,19 @@ function logoutAdmin() {
 }
 
 
+
+function cleanValidClubsOnly() {
+  const seen = {};
+  globalClubs = globalClubs.filter(club => {
+    const id = String(club["Lion ID"] || "").trim();
+    const name = String(club["Club Name"] || "").trim();
+    if (!id || !name) return false;
+    if (seen[id]) return false;
+    seen[id] = true;
+    return true;
+  });
+}
+
 function sortGlobalClubsAlphabetically() {
   globalClubs.sort((a, b) => String(a["Club Name"] || "").localeCompare(String(b["Club Name"] || "")));
 }
@@ -401,10 +415,16 @@ function populateAdminDropdown(selectedValue = "") {
   if (!select) return;
   select.innerHTML = '<option value="">-- Select a Club --</option>';
 
+  const seen = {};
   globalClubs.forEach(club => {
+    const lionId = String(club["Lion ID"] || "").trim();
+    const clubName = String(club["Club Name"] || "").trim();
+    if (!lionId || !clubName || seen[lionId]) return;
+    seen[lionId] = true;
+
     const opt = document.createElement("option");
-    opt.value = club["Lion ID"];
-    opt.innerText = club["Club Name"];
+    opt.value = lionId;
+    opt.innerText = clubName;
     select.appendChild(opt);
   });
   if (selectedValue) select.value = selectedValue;
@@ -519,11 +539,15 @@ function filterAdminClubSearch() {
 
   if (!q) return;
 
+  const seen = {};
   globalClubs
-    .filter(club =>
-      String(club["Club Name"] || "").toLowerCase().includes(q) ||
-      String(club["Lion ID"] || "").toLowerCase().includes(q)
-    )
+    .filter(club => {
+      const id = String(club["Lion ID"] || "").trim();
+      const name = String(club["Club Name"] || "").trim();
+      if (!id || !name || seen[id]) return false;
+      seen[id] = true;
+      return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
+    })
     .slice(0, 30)
     .forEach(club => {
       const opt = document.createElement("option");
