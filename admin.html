@@ -260,8 +260,12 @@ body { margin:0; }
       </div>
       <label>International Dues (USD):</label><input type="number" id="admIntlDues">
       <label>WhatsApp Number:</label><input type="text" id="admWhatsApp">
-      <label>International Payment Status:</label><select id="admIntlStatus"><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="Paid">Paid</option></select>
-      <label>District Payment Status:</label><select id="admDistrictStatus"><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="Paid">Paid</option></select>
+      <label>International Payment Status:</label><select id="admIntlStatus" onchange="showUnsavedStatusNote()"><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="Paid">Paid</option></select>
+      <label>District Payment Status:</label><select id="admDistrictStatus" onchange="showUnsavedStatusNote()"><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="Paid">Paid</option></select>
+
+      <div id="unsavedStatusNote" style="display:none;background:#fff8e6;border:1px solid #f1c40f;border-radius:6px;padding:9px;margin:8px 0;font-size:13px;color:#5d4a00;">
+        Status छानिएको छ। Google Sheet मा save गर्न <b>Save & Update Sheet</b> button थिच्नुहोस्।
+      </div>
       <div class="admin-action-row">
         <button id="adminSaveBtn" class="primary-btn" style="background:#2ecc71; flex:2;" onclick="submitAdminUpdate()">Save & Update Sheet</button>
         <button class="primary-btn" style="background:#e67e22; flex:1;" onclick="sendAdminDuesReminder()">🔔 Send Reminder</button>
@@ -769,6 +773,8 @@ function loadClubToAdminForm() {
     document.getElementById("admDistrictStatus").value = oldDistrictStatus;
 
     document.getElementById("adminForm").style.display = "block";
+    const unsavedNote = document.getElementById("unsavedStatusNote");
+    if (unsavedNote) unsavedNote.style.display = "none";
   }
 }
 
@@ -778,6 +784,12 @@ function closeAdminEditForm() {
   if (adminLoggedIn) startAdminAutoRefresh();
 }
 
+
+function showUnsavedStatusNote() {
+  const note = document.getElementById("unsavedStatusNote");
+  if (note) note.style.display = "block";
+}
+
 async function submitAdminUpdate() {
   const id = document.getElementById("adminClubSelect").value;
   const cName = document.getElementById("admClubName").value;
@@ -785,6 +797,9 @@ async function submitAdminUpdate() {
 
   const newIntlStatus = document.getElementById("admIntlStatus").value;
   const newDistrictStatus = document.getElementById("admDistrictStatus").value;
+
+  const saveOk = confirm("के यो विवरण Google Sheet मा Save गर्ने हो?\n\nDropdown select गर्दा मात्र save हुँदैन। Save & Update Sheet थिचेपछि मात्र update हुन्छ।");
+  if (!saveOk) return;
 
   let reservedWhatsAppWindow = null;
   const shouldOpenWhatsApp = targetPhone && (newIntlStatus !== oldIntlStatus || newDistrictStatus !== oldDistrictStatus);
@@ -817,6 +832,8 @@ async function submitAdminUpdate() {
 
     if (result.status === "success") {
       alert(result.message);
+      const unsavedNote = document.getElementById("unsavedStatusNote");
+      if (unsavedNote) unsavedNote.style.display = "none";
       await loadData({ silent: true });
 
       if (shouldOpenWhatsApp) {
