@@ -41,6 +41,7 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 .badge-paid { background:#2ecc71; }
 .badge-unpaid { background:#e74c3c; }
 .badge-pending { background:#f1c40f; color:#2c3e50; }
+.badge-credit { background:#3498db; color:white; }
 
 .modal { display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.4); overflow:auto; }
 .modal-content { background:white; margin:6% auto; padding:30px; border-radius:10px; width:90%; max-width:550px; position:relative; box-shadow:0 10px 30px rgba(0,0,0,0.15); }
@@ -211,20 +212,19 @@ body {
 
       <div class="checkbox-group">
         <label class="checkbox-label">
-          <input type="checkbox" id="chkIntl" checked onchange="recalcTotalToPay()">
+          <input type="checkbox" id="chkIntl" checked onchange="recalcTotalToPay(); renderPaymentQRCodes()">
           <span>International Dues</span>
         </label>
         <label class="checkbox-label">
-          <input type="checkbox" id="chkDist" checked onchange="recalcTotalToPay()">
+          <input type="checkbox" id="chkDist" checked onchange="recalcTotalToPay(); renderPaymentQRCodes()">
           <span>District Dues</span>
         </label>
       </div>
 
       <h4 style="color:#e74c3c;">कुल तिर्नुपर्ने रकम: रु. <span id="payAmountText">0</span></h4>
 
-      <div style="text-align:center; margin:15px 0; background:#f8f9fa; padding:10px; border-radius:6px;">
-        <img src="qr.jpg" class="qr-thumb" alt="Payment QR Code" onclick="openLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250?text=QR+Not+Found'">
-        <p style="font-size:11px; color:#7f8c8d;">( क्युआर कोड ठूलो बनाएर हेर्न यहाँ क्लिक गर्नुहोस् )</p>
+      <div id="paymentQrBox" style="text-align:center; margin:15px 0; background:#f8f9fa; padding:10px; border-radius:6px;">
+        <p style="font-size:13px; color:#7f8c8d;">कृपया माथि dues tick गरेपछि सम्बन्धित QR यहाँ देखिन्छ।</p>
       </div>
 
       <label style="font-size:14px; font-weight:600;">१. भौचर पठाउने व्यक्तिको नाम:</label>
@@ -339,7 +339,7 @@ function renderTable() {
     const intlStatusStr = row["Payment Status"] || "Unpaid";
     const distStatusStr = row["District Payment Status"] || "Unpaid";
 
-    const intlBadge = `<span class="badge ${intlStatusStr === "Paid" ? "badge-paid" : (intlStatusStr === "Pending Verification" ? "badge-pending" : "badge-unpaid")}">${intlStatusStr}</span>`;
+    const intlBadge = `<span class="badge ${intlStatusStr === "Paid" ? "badge-paid" : (intlStatusStr === "Pending Verification" ? "badge-pending" : (intlStatusStr === "Credit" ? "badge-credit" : "badge-unpaid"))}">${intlStatusStr}</span>`;
     const distBadge = `<span class="badge ${distStatusStr === "Paid" ? "badge-paid" : (distStatusStr === "Pending Verification" ? "badge-pending" : "badge-unpaid")}">${distStatusStr}</span>`;
 
     tr.innerHTML = `
@@ -393,7 +393,9 @@ function openDetailsModal() {
   document.getElementById("mActiveCount").innerText = club["Active Member Count"] || 0;
   document.getElementById("mNewCount").innerText = club["New Member"] || 0;
 
-  const intlNpr = (parseFloat(club["International Due Amount"]) || 0) * chosenDollarRate;
+  const intlUsdRaw = parseFloat(club["International Due Amount"]) || 0;
+  const intlNprRaw = intlUsdRaw * chosenDollarRate;
+  const intlNpr = intlUsdRaw < 0 ? 0 : intlNprRaw;
   const distBaseNpr = parseFloat(club["District Due Amount"]) || 0;
   const newMemberCount = parseFloat(club["New Member"]) || 0;
   const newNpr = newMemberCount * 100;
@@ -402,8 +404,8 @@ function openDetailsModal() {
 
   document.getElementById("mIntlUsd").innerText = club["International Due Amount"] || 0;
   document.getElementById("mCurrentRate").innerText = chosenDollarRate;
-  document.getElementById("mIntlNpr").innerText = intlNpr.toLocaleString();
-  document.getElementById("mIntlStatus").innerText = intlStatus;
+  document.getElementById("mIntlNpr").innerText = intlUsdRaw < 0 ? ("Credit रु. " + Math.abs(intlNprRaw).toLocaleString()) : intlNpr.toLocaleString();
+  document.getElementById("mIntlStatus").innerText = intlUsdRaw < 0 ? "Credit / Adjustment" : intlStatus;
 
   document.getElementById("mDistrictCalc").innerText = club["Active Member Count"] || 0;
   document.getElementById("mDistrictNpr").innerText = distNpr.toLocaleString();
@@ -415,7 +417,7 @@ function openDetailsModal() {
 
   const chkIntl = document.getElementById("chkIntl");
   const chkDist = document.getElementById("chkDist");
-  const intlPayable = isPayableStatus(intlStatus);
+  const intlPayable = isPayableStatus(intlStatus) && intlUsdRaw > 0;
   const distPayable = isPayableStatus(districtStatus);
 
   // Default मा कुनै पनि dues auto selected हुँदैन।
@@ -434,7 +436,7 @@ function openDetailsModal() {
   }
 
   const notes = [];
-  if (!intlPayable) notes.push("International Dues: " + intlStatus + " भएकाले फेरि submit गर्न मिल्दैन ।");
+  if (!intlPayable) notes.push(intlUsdRaw < 0 ? "International Dues: Credit/Adjustment भएकाले भुक्तानी गर्नुपर्दैन ।" : "International Dues: " + intlStatus + " भएकाले फेरि submit गर्न मिल्दैन ।");
   if (!distPayable) notes.push("District Dues: " + districtStatus + " भएकाले फेरि submit गर्न मिल्दैन ।");
   lockMsg.innerHTML = notes.length ? notes.join("<br>") : "";
   lockMsg.style.display = notes.length ? "block" : "none";
@@ -444,6 +446,7 @@ function openDetailsModal() {
   } else {
     document.getElementById("paymentSection").style.display = "block";
     recalcTotalToPay();
+    renderPaymentQRCodes();
   }
 
   document.getElementById("detailsModal").style.display = "block";
@@ -456,8 +459,9 @@ function closeDetailsModal() {
 function recalcTotalToPay() {
   if (!selectedClubForUser) return;
   let amt = 0;
-  if (document.getElementById("chkIntl").checked && !document.getElementById("chkIntl").disabled) {
-    amt += (parseFloat(selectedClubForUser["International Due Amount"]) || 0) * chosenDollarRate;
+  const intlUsd = parseFloat(selectedClubForUser["International Due Amount"]) || 0;
+  if (document.getElementById("chkIntl").checked && !document.getElementById("chkIntl").disabled && intlUsd > 0) {
+    amt += intlUsd * chosenDollarRate;
   }
   if (document.getElementById("chkDist").checked && !document.getElementById("chkDist").disabled) {
     const distBaseNpr = parseFloat(selectedClubForUser["District Due Amount"]) || 0;
@@ -465,6 +469,39 @@ function recalcTotalToPay() {
     amt += distBaseNpr + newMemberFee;
   }
   document.getElementById("payAmountText").innerText = amt.toLocaleString();
+}
+
+function renderPaymentQRCodes() {
+  const box = document.getElementById("paymentQrBox");
+  if (!box) return;
+
+  const showIntl = document.getElementById("chkIntl").checked && !document.getElementById("chkIntl").disabled;
+  const showDist = document.getElementById("chkDist").checked && !document.getElementById("chkDist").disabled;
+
+  if (!showIntl && !showDist) {
+    box.innerHTML = `<p style="font-size:13px;color:#7f8c8d;">कृपया माथि dues tick गरेपछि सम्बन्धित QR यहाँ देखिन्छ।</p>`;
+    return;
+  }
+
+  let html = "";
+  if (showIntl) {
+    html += `
+      <div style="margin-bottom:14px;">
+        <h4 style="margin:6px 0;color:#003366;">International Dues QR</h4>
+        <img src="Int qr.png" class="qr-thumb" alt="International Payment QR" onclick="openLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250?text=Int+QR+Not+Found'">
+      </div>`;
+  }
+
+  if (showDist) {
+    html += `
+      <div style="margin-bottom:8px;">
+        <h4 style="margin:6px 0;color:#003366;">District Dues QR</h4>
+        <img src="qr.jpg" class="qr-thumb" alt="District Payment QR" onclick="openLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250?text=District+QR+Not+Found'">
+      </div>`;
+  }
+
+  html += `<p style="font-size:11px;color:#7f8c8d;">(क्युआर कोड ठूलो बनाएर हेर्न क्लिक गर्नुहोस्)</p>`;
+  box.innerHTML = html;
 }
 
 async function submitUserPayment() {
@@ -490,6 +527,8 @@ async function submitUserPayment() {
 
   const intlStatus = getStatusValue(selectedClubForUser["Payment Status"]);
   const distStatus = getStatusValue(selectedClubForUser["District Payment Status"]);
+  const intlUsdForSubmit = parseFloat(selectedClubForUser["International Due Amount"]) || 0;
+  if (chkIntl && intlUsdForSubmit <= 0) { alert("International Dues Credit/Adjustment छ। यसमा payment submit गर्न मिल्दैन।"); return; }
   if (chkIntl && intlStatus !== "Unpaid") { alert("International Dues पहिले नै " + intlStatus + " छ ।"); return; }
   if (chkDist && distStatus !== "Unpaid") { alert("District Dues पहिले नै " + distStatus + " छ ।"); return; }
 
