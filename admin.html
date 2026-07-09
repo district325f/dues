@@ -179,7 +179,7 @@ body { margin:0; }
   <div class="admin-dashboard-view" id="adminDashboard" style="display:none;">
     <div class="admin-section-title">
       <h2 style="color:#003366; margin-top:0;">Admin Dashboard</h2>
-      <span class="auto-refresh-note">Auto refresh 5 sec — Edit/Add form खुल्दा pause हुन्छ</span>
+      <span class="auto-refresh-note">Auto refresh 5 sec — Select/Edit/Add form प्रयोग गर्दा pause हुन्छ</span>
     </div>
 
     <div class="dashboard-summary-panel" id="dashboardSummaryPanel">
@@ -365,6 +365,7 @@ async function postData(payload) {
 
 async function loadData(options = {}) {
   const silent = options.silent === true;
+  if (silent && isAdminSelectBusy()) return;
   try {
     const selected = document.getElementById("adminClubSelect") ? document.getElementById("adminClubSelect").value : "";
     const res = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
@@ -489,6 +490,30 @@ function isAdminEditing() {
   const addBox = document.getElementById("addClubFormBox");
   return (form && form.style.display === "block") || (addBox && addBox.style.display === "block");
 }
+
+
+function isAdminSelectBusy() {
+  const active = document.activeElement;
+  if (!active) return false;
+
+  const busyIds = [
+    "adminClubSelect",
+    "adminClubSearch",
+    "adminSearchResults",
+    "admClubName",
+    "admActiveMembers",
+    "admNewMember",
+    "admIntlDues",
+    "admWhatsApp",
+    "admSubmittedBy",
+    "admContactNumber",
+    "admIntlStatus",
+    "admDistrictStatus"
+  ];
+
+  return busyIds.includes(active.id) || isAdminEditing();
+}
+
 
 function startAdminAutoRefresh() {
   stopAdminAutoRefresh();
