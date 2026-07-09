@@ -124,6 +124,18 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 .report-total-box { margin-top:10px; padding:12px; border:2px solid #003366; border-radius:8px; background:#f8fbff; text-align:right; font-weight:800; color:#003366; }
 .report-total-box span { display:inline-block; min-width:160px; }
 .report-table th:first-child, .report-table td:first-child { width:45px; text-align:center; }
+
+.credit-adjustment-btn{
+  background:#8e44ad;
+  color:white;
+  border:none;
+  font-weight:800;
+  cursor:pointer;
+  border-radius:6px;
+}
+.credit-adjustment-btn:hover{ background:#71368a; }
+.credit-adjustment-btn:disabled{ opacity:.7; cursor:not-allowed; }
+
 </style>
 <style>
 body { margin:0; }
@@ -216,6 +228,16 @@ body { margin:0; }
       </div>
     </div>
 
+    
+    <div style="margin:12px 0; padding:12px; background:#fbf6ff; border:1px solid #e6d7f2; border-radius:8px;">
+      <button id="creditAdjustmentBtn" class="credit-adjustment-btn" onclick="applyInternationalCreditAdjustment()">
+        🔄 Apply International Credit Adjustment
+      </button>
+      <div style="font-size:12px;color:#6c5b7b;margin-top:6px;">
+        Negative International Dues भएका clubs लाई Paid/Credit Adjustment अनुसार Sheet मा update गर्न मात्र यो button प्रयोग गर्नुहोस्।
+      </div>
+    </div>
+
     <div class="payment-requests-panel" id="paymentRequestsPanel">
       <h3>📌 Pending Payment Requests <span class="auto-refresh-badge">Live</span></h3>
       <p class="request-note">कुन क्लबले payment विवरण पठाएको छ भन्ने request यहाँ देखिन्छ । Approve गरेपछि Pending Verification बाट Paid हुन्छ ।</p>
@@ -305,7 +327,7 @@ body { margin:0; }
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2Aty2uZ_e6fzEossHSUTyDgpTNwUr3xcEKxTIA_ek8VgleWxiFwwCpB28jEOcE4c_/exec";
-const PORTAL_LINK = "YOUR_PORTAL_LINK_HERE";
+const PORTAL_LINK = "https://district325f.github.io/dues";
 const INTERNATIONAL_BANK_DETAILS =
   "🌍 International Bank Details\n" +
   "Account Holder : The Intl Assoc of Lions\n" +
@@ -501,6 +523,42 @@ function numberValue(v) {
 
 function formatMoney(n) {
   return "रु. " + Math.round(n || 0).toLocaleString();
+}
+
+
+async function applyInternationalCreditAdjustment() {
+  const ok = confirm("Negative International Dues भएका सबै क्लबलाई International Credit Adjustment अनुसार Sheet मा update गर्ने हो?");
+  if (!ok) return;
+
+  const btn = document.getElementById("creditAdjustmentBtn");
+  const oldText = btn ? btn.innerText : "";
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "⏳ Updating...";
+  }
+
+  try {
+    const result = await postData({
+      actionType: "apply_credit_adjustment",
+      adminUser: getAdminUserName ? getAdminUserName() : "Admin"
+    });
+
+    if (result.status === "success") {
+      alert(result.message || "Credit Adjustment update भयो।");
+      await loadData({ silent: true });
+      if (typeof loadAuditLogs === "function") loadAuditLogs(true);
+    } else {
+      alert(result.message || "Credit Adjustment failed भयो।");
+    }
+  } catch (err) {
+    alert("Credit Adjustment error: " + err.toString());
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = oldText || "🔄 Apply International Credit Adjustment";
+    }
+  }
 }
 
 function renderDashboardSummary() {
@@ -1124,7 +1182,7 @@ function sendAdminDuesReminder() {
 
   duesDetails += `Total Payable : रु. ${totalDue.toLocaleString()}\\n`;
 
-  const portalLine = PORTAL_LINK && PORTAL_LINK !== "https://district325f.github.io/dues" ? `\\n🌐 District Dues Portal\\n${PORTAL_LINK}\\n` : "";
+  const portalLine = PORTAL_LINK && PORTAL_LINK !== "YOUR_PORTAL_LINK_HERE" ? `\\n🌐 District Dues Portal\\n${PORTAL_LINK}\\n` : "";
 
   const reminderMsg =
     `🔔 महत्त्वपूर्ण सूचना\\n\\n` +
