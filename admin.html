@@ -415,7 +415,7 @@ async function checkAdminLogin() {
   }
 
   setBtnLoading("adminLoginBtn", "⏳ Checking...", "Login as Admin", true);
-  setLoginStatus(true, "⏳ Username/Password checking... कृपया पर्खनुहोस् ।");
+  setLoginStatus(true, "⏳ Username/Password checking... कृपया पर्खनुहोस्।");
 
   try {
     const result = await postData({ actionType: "admin_login", username: user, password: pass });
@@ -527,7 +527,7 @@ function formatMoney(n) {
 
 
 async function applyInternationalCreditAdjustment() {
-  const ok = confirm("Negative International Dues भएका सबै क्लबलाई International Credit Adjustment अनुसार Sheet मा update गर्ने हो ?");
+  const ok = confirm("Negative International Dues भएका सबै क्लबलाई International Credit Adjustment अनुसार Sheet मा update गर्ने हो?");
   if (!ok) return;
 
   const btn = document.getElementById("creditAdjustmentBtn");
@@ -828,7 +828,7 @@ function buildFilteredReportRows() {
       }
     }
   });
-  return rows;
+  return sortReportRowsAlphabetically(rows);
 }
 
 function getReportTotals(rows) {
@@ -853,6 +853,15 @@ function renderScreenReportTotal(rows) {
   html += `<div style="border-top:1px solid #003366;margin-top:6px;padding-top:6px;">Grand Total: <span>रु. ${Math.round(totals.grandTotal).toLocaleString()}</span></div>`;
   box.innerHTML = html;
   box.style.display = "block";
+}
+
+
+function sortReportRowsAlphabetically(rows) {
+  return rows.sort((a, b) => {
+    const nameA = String(a.clubName || "").trim();
+    const nameB = String(b.clubName || "").trim();
+    return nameA.localeCompare(nameB, undefined, { sensitivity: "base" });
+  });
 }
 
 function renderAdminReport() {
@@ -887,7 +896,7 @@ function getReportFileBaseName() {
 
 function ensureReportRowsReady() {
   currentReportRows = buildFilteredReportRows();
-  if (!currentReportRows.length) { alert("यो filter अनुसार download गर्ने data छैन। पहिले filter मिलाएर View Report थिच्नुहोस्।"); return false; }
+  if (!currentReportRows.length) { alert("यो filter अनुसार download गर्ने data छैन । पहिले filter मिलाएर View Report थिच्नुहोस् ।"); return false; }
   return true;
 }
 
@@ -933,7 +942,7 @@ async function downloadCurrentReportPDF() {
   if (btn) { btn.disabled = true; btn.innerText = "⏳ PDF..."; }
   try {
     const jsPDFClass = window.jspdf && window.jspdf.jsPDF ? window.jspdf.jsPDF : null;
-    if (!jsPDFClass) { alert("PDF library load हुन सकेन । Internet connection सहित फेरि try गर्नुहोस् ।"); return; }
+    if (!jsPDFClass) { alert("PDF library load हुन सकेन। Internet connection सहित फेरि try गर्नुहोस्।"); return; }
     const duesType = document.getElementById("reportDuesType").value;
     const statusFilter = document.getElementById("reportStatus").value;
     const doc = new jsPDFClass("l", "pt", "a4");
@@ -1193,7 +1202,7 @@ function sendAdminDuesReminder() {
   }
 
   if (!hasDue) {
-    alert("यो क्लबको payable dues बाँकी देखिएन। Reminder पठाउन आवश्यक छैन।");
+    alert("यो क्लबको payable dues बाँकी देखिएन । Reminder पठाउन आवश्यक छैन ।");
     return;
   }
 
@@ -1205,7 +1214,7 @@ function sendAdminDuesReminder() {
 
   const reminderMsg =
     `🔔 महत्त्वपूर्ण सूचना\n\n` +
-    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ । कृपया तल उल्लेखित विवरण अनुसार समयमै भुक्तानी गरी वित्तीय विवरण पोर्टलमा भौचर अपडेट गरिदिनुहुन अनुरोध गर्दछु ।\n\n` +
+    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ । कृपया तल उल्लेखित विवरण अनुसार समयमै भुक्तानी गरी वित्तीय विवरण पोर्टलमा भौचर अपडेट गरिदिनुहुन अनुरोध गर्दगर्दछु ।\n\n` +
     `━━━━━━━━━━━━━━━\n` +
     duesDetails +
     `━━━━━━━━━━━━━━━\n` +
