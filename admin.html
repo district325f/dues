@@ -186,6 +186,7 @@ body { margin:0; }
       </div>
       <div class="collection-grid">
         <div class="summary-card"><div class="label">Intl Outstanding</div><div class="num" id="sumIntlOutstanding">रु. 0</div></div>
+        <div class="summary-card"><div class="label">Intl Credit Clubs</div><div class="num" id="sumIntlCreditClubs">0</div></div>
       </div>
 
       <h3 style="margin-top:18px;">🏛️ District Dues Summary</h3>
@@ -205,7 +206,7 @@ body { margin:0; }
         <div class="summary-card"><div class="label">District Total Outstanding</div><div class="num" id="sumDistrictTotalOutstanding">रु. 0</div></div>
         <div class="summary-card"><div class="label">New Member Fee Rate</div><div class="num">रु. 100</div></div>
         <div class="summary-card"><div class="label">New Member Total Fee</div><div class="num" id="sumNewMemberTotalFee">रु. 0</div></div>
-        <div class="summary-card"><div class="label">Grand Total Collection</div><div class="num" id="sumTotalCollection">रु. 0</div></div>
+        <div class="summary-card"><div class="label">Intl Credit / Adjustment</div><div class="num" id="sumIntlCreditAmount">रु. 0</div></div>
       </div>
     </div>
 
@@ -488,10 +489,10 @@ function renderDashboardSummary() {
   const total = globalClubs.length;
   const currentRate = globalClubs.length ? numberValue(globalClubs[0]["__exchangeRate"]) : 0;
 
-  let intlPaid = 0, intlPending = 0, intlUnpaid = 0;
+  let intlPaid = 0, intlPending = 0, intlUnpaid = 0, intlCreditClubs = 0;
   let districtPaid = 0, districtPending = 0, districtUnpaid = 0;
 
-  let intlCollection = 0, intlOutstanding = 0;
+  let intlCollection = 0, intlOutstanding = 0, intlCreditAmount = 0;
   let districtBaseCollection = 0, districtBaseOutstanding = 0;
   let newMemberCollection = 0, newMemberOutstanding = 0;
   let totalNewMemberCount = 0;
@@ -500,18 +501,36 @@ function renderDashboardSummary() {
     const intlStatus = getStatusValue(club["Payment Status"]);
     const distStatus = getStatusValue(club["District Payment Status"]);
     const rate = numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]);
+    const intlUsd = numberValue(club["International Due Amount"]);
 
-    const intlAmountNpr = numberValue(club["International Due Amount"]) * rate;
+    const intlAmountNprRaw = intlUsd * rate;
     const districtBaseAmount = numberValue(club["District Due Amount"]);
     const newMemberCount = numberValue(club["New Member"]);
     const newMemberFee = newMemberCount * 100;
     totalNewMemberCount += newMemberCount;
 
-    if (intlStatus === "Paid") { intlPaid++; intlCollection += intlAmountNpr; }
-    else { if (intlStatus === "Pending Verification") intlPending++; else intlUnpaid++; intlOutstanding += intlAmountNpr; }
+    if (intlUsd < 0) {
+      intlCreditClubs++;
+      intlCreditAmount += Math.abs(intlAmountNprRaw);
+    } else if (intlStatus === "Paid") {
+      intlPaid++;
+      intlCollection += intlAmountNprRaw;
+    } else {
+      if (intlStatus === "Pending Verification") intlPending++;
+      else intlUnpaid++;
+      intlOutstanding += intlAmountNprRaw;
+    }
 
-    if (distStatus === "Paid") { districtPaid++; districtBaseCollection += districtBaseAmount; newMemberCollection += newMemberFee; }
-    else { if (distStatus === "Pending Verification") districtPending++; else districtUnpaid++; districtBaseOutstanding += districtBaseAmount; newMemberOutstanding += newMemberFee; }
+    if (distStatus === "Paid") {
+      districtPaid++;
+      districtBaseCollection += districtBaseAmount;
+      newMemberCollection += newMemberFee;
+    } else {
+      if (distStatus === "Pending Verification") districtPending++;
+      else districtUnpaid++;
+      districtBaseOutstanding += districtBaseAmount;
+      newMemberOutstanding += newMemberFee;
+    }
   });
 
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
@@ -524,8 +543,10 @@ function renderDashboardSummary() {
   set("sumIntlPaid", intlPaid);
   set("sumIntlPending", intlPending);
   set("sumIntlUnpaid", intlUnpaid);
+  set("sumIntlCreditClubs", intlCreditClubs);
   set("sumIntlCollection", formatMoney(intlCollection));
   set("sumIntlOutstanding", formatMoney(intlOutstanding));
+  set("sumIntlCreditAmount", formatMoney(intlCreditAmount));
 
   set("sumDistrictPaid", districtPaid);
   set("sumDistrictPending", districtPending);
@@ -539,7 +560,6 @@ function renderDashboardSummary() {
 
   set("sumNewMemberCount", totalNewMemberCount);
   set("sumNewMemberTotalFee", formatMoney(newMemberCollection + newMemberOutstanding));
-  set("sumTotalCollection", formatMoney(intlCollection + districtBaseCollection + newMemberCollection));
 }
 
 function filterAdminClubSearch() {
@@ -1144,6 +1164,8 @@ async function submitAddNewClub() {
 }
 
 function sendAdminDuesReminder() {
+  const clubId = document.getElementById("adminClubSelect").value;
+  const club = globalClubs.find(c => String(c["Lion ID"]) === String(clubId));
   const cName = document.getElementById("admClubName").value;
   const targetPhone = document.getElementById("admWhatsApp").value.trim().replace(/[-+ \s]/g, "");
 
@@ -1152,7 +1174,33 @@ function sendAdminDuesReminder() {
     return;
   }
 
+  const rate = club ? numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]) : 0;
+  const intlUsd = club ? numberValue(club["International Due Amount"]) : 0;
+  const intlAmount = intlUsd * rate;
+  const distAmount = club ? (numberValue(club["District Due Amount"]) + (numberValue(club["New Member"]) * 100)) : 0;
+
+  const intlStatus = club ? getStatusValue(club["Payment Status"]) : "Unpaid";
+  const distStatus = club ? getStatusValue(club["District Payment Status"]) : "Unpaid";
+
+  let intlText = "";
+  let distText = "";
+  let totalDue = 0;
+
+  if (intlUsd < 0) intlText = "Credit/Adjustment रु. " + Math.abs(intlAmount).toLocaleString();
+  else if (intlStatus === "Paid") intlText = "Paid ✅";
+  else { intlText = "रु. " + intlAmount.toLocaleString(); totalDue += intlAmount; }
+
+  if (distStatus === "Paid") distText = "Paid ✅";
+  else { distText = "रु. " + distAmount.toLocaleString(); totalDue += distAmount; }
+
+  const duesDetails =
+    `Dues Details\n` +
+    `International Dues : ${intlText}\n` +
+    `District Dues : ${distText}\n` +
+    `Total : रु. ${totalDue.toLocaleString()}\n\n`;
+
   const reminderMsg =
+    duesDetails +
     `महत्वपूर्ण सूचना:\n` +
     `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ । कृपया वित्तीय विवरण पोर्टलमा चेक गरी समयमै भुक्तानी गरिदिनुहोला । धन्यवाद !\n\nलायन कृष्ण ज्योती शाक्य\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
 
