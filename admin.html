@@ -121,6 +121,9 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 .download-report-btn.pdf { background:#e74c3c; }
 .download-report-btn:disabled { opacity:.7; cursor:not-allowed; }
 
+.report-total-box { margin-top:10px; padding:12px; border:2px solid #003366; border-radius:8px; background:#f8fbff; text-align:right; font-weight:800; color:#003366; }
+.report-total-box span { display:inline-block; min-width:160px; }
+.report-table th:first-child, .report-table td:first-child { width:45px; text-align:center; }
 </style>
 <style>
 body { margin:0; }
@@ -182,6 +185,7 @@ body { margin:0; }
         <div class="summary-card"><div class="label">Intl Paid</div><div class="num" id="sumIntlPaid">0</div></div>
         <div class="summary-card"><div class="label">Intl Pending</div><div class="num" id="sumIntlPending">0</div></div>
         <div class="summary-card"><div class="label">Intl Unpaid</div><div class="num" id="sumIntlUnpaid">0</div></div>
+        <div class="summary-card"><div class="label">Intl Total Payable</div><div class="num" id="sumIntlTotalPayable">रु. 0</div></div>
         <div class="summary-card"><div class="label">Intl Collection</div><div class="num" id="sumIntlCollection">रु. 0</div></div>
       </div>
       <div class="collection-grid">
@@ -195,6 +199,7 @@ body { margin:0; }
         <div class="summary-card"><div class="label">District Paid</div><div class="num" id="sumDistrictPaid">0</div></div>
         <div class="summary-card"><div class="label">District Pending</div><div class="num" id="sumDistrictPending">0</div></div>
         <div class="summary-card"><div class="label">District Unpaid</div><div class="num" id="sumDistrictUnpaid">0</div></div>
+        <div class="summary-card"><div class="label">District Total Payable</div><div class="num" id="sumDistrictTotalPayable">रु. 0</div></div>
         <div class="summary-card"><div class="label">District Base Collection</div><div class="num" id="sumDistrictCollection">रु. 0</div></div>
       </div>
       <div class="collection-grid">
@@ -219,9 +224,10 @@ body { margin:0; }
           <thead>
             <tr><th>Club</th><th>Lion ID</th><th>Dues</th><th>Submitted By</th><th>Contact</th><th>Date</th><th>Action</th></tr>
           </thead>
-          <tbody id="paymentRequestsBody"><tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन ।</td></tr></tbody>
+          <tbody id="paymentRequestsBody"><tr><td colspan="8" class="request-empty">अहिले कुनै pending request छैन ।</td></tr></tbody>
         </table>
       </div>
+      <div id="screenReportTotalBox" class="report-total-box" style="display:none;"></div>
     </div>
 
     <div class="add-club-panel" id="addNewClubPanel">
@@ -255,8 +261,8 @@ body { margin:0; }
       </div>
       <div class="report-table-wrap">
         <table class="report-table">
-          <thead><tr><th>Club</th><th>Lion ID</th><th>Dues Type</th><th>Amount</th><th>Status</th><th>Submitted By</th><th>Contact</th></tr></thead>
-          <tbody id="adminReportBody"><tr><td colspan="7" class="request-empty">Report हेर्न माथिको option छानी View Report थिच्नुहोस् ।</td></tr></tbody>
+          <thead><tr><th style="width:45px;">S.N.</th><th>Club</th><th>Lion ID</th><th>Dues Type</th><th>Amount</th><th>Status</th><th>Submitted By</th><th>Contact</th></tr></thead>
+          <tbody id="adminReportBody"><tr><td colspan="8" class="request-empty">Report हेर्न माथिको option छानी View Report थिच्नुहोस् ।</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -299,6 +305,17 @@ body { margin:0; }
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2Aty2uZ_e6fzEossHSUTyDgpTNwUr3xcEKxTIA_ek8VgleWxiFwwCpB28jEOcE4c_/exec";
+const PORTAL_LINK = "YOUR_PORTAL_LINK_HERE";
+const INTERNATIONAL_BANK_DETAILS =
+  "🌍 International Bank Details\n" +
+  "Account Holder : The Intl Assoc of Lions\n" +
+  "Bank : Nepal Investment Mega Bank\n" +
+  "Account Number : 00101010297301";
+const DISTRICT_BANK_DETAILS =
+  "🏛️ District Bank Details\n" +
+  "Account Holder : Lions Clubs International District 325 F\n" +
+  "Bank : Nepal Investment Mega Bank\n" +
+  "Account Number : 09005080208192";
 
 let globalClubs = [];
 let oldIntlStatus = "";
@@ -492,7 +509,6 @@ function renderDashboardSummary() {
 
   let intlPaid = 0, intlPending = 0, intlUnpaid = 0, intlCreditClubs = 0;
   let districtPaid = 0, districtPending = 0, districtUnpaid = 0;
-
   let intlCollection = 0, intlOutstanding = 0, intlCreditAmount = 0;
   let districtBaseCollection = 0, districtBaseOutstanding = 0;
   let newMemberCollection = 0, newMemberOutstanding = 0;
@@ -503,62 +519,48 @@ function renderDashboardSummary() {
     const distStatus = getStatusValue(club["District Payment Status"]);
     const rate = numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]);
     const intlUsd = numberValue(club["International Due Amount"]);
-
-    const intlAmountNprRaw = intlUsd * rate;
+    const intlAmountRaw = intlUsd * rate;
     const districtBaseAmount = numberValue(club["District Due Amount"]);
     const newMemberCount = numberValue(club["New Member"]);
     const newMemberFee = newMemberCount * 100;
     totalNewMemberCount += newMemberCount;
 
-    if (intlUsd < 0) {
-      intlCreditClubs++;
-      intlCreditAmount += Math.abs(intlAmountNprRaw);
-    } else if (intlStatus === "Paid") {
-      intlPaid++;
-      intlCollection += intlAmountNprRaw;
-    } else {
-      if (intlStatus === "Pending Verification") intlPending++;
-      else intlUnpaid++;
-      intlOutstanding += intlAmountNprRaw;
-    }
+    if (intlUsd < 0) { intlCreditClubs++; intlCreditAmount += Math.abs(intlAmountRaw); }
+    else if (intlStatus === "Paid") { intlPaid++; intlCollection += intlAmountRaw; }
+    else { if (intlStatus === "Pending Verification") intlPending++; else intlUnpaid++; intlOutstanding += intlAmountRaw; }
 
-    if (distStatus === "Paid") {
-      districtPaid++;
-      districtBaseCollection += districtBaseAmount;
-      newMemberCollection += newMemberFee;
-    } else {
-      if (distStatus === "Pending Verification") districtPending++;
-      else districtUnpaid++;
-      districtBaseOutstanding += districtBaseAmount;
-      newMemberOutstanding += newMemberFee;
-    }
+    if (distStatus === "Paid") { districtPaid++; districtBaseCollection += districtBaseAmount; newMemberCollection += newMemberFee; }
+    else { if (distStatus === "Pending Verification") districtPending++; else districtUnpaid++; districtBaseOutstanding += districtBaseAmount; newMemberOutstanding += newMemberFee; }
   });
+
+  const intlTotalPayable = intlCollection + intlOutstanding;
+  const districtTotalCollection = districtBaseCollection + newMemberCollection;
+  const districtTotalOutstanding = districtBaseOutstanding + newMemberOutstanding;
+  const districtTotalPayable = districtTotalCollection + districtTotalOutstanding;
 
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
   set("sumExchangeRate", currentRate);
   set("sumTotalClubs", total);
-
   set("sumIntlPaidClubs", intlPaid);
   set("sumDistrictPaidClubs", districtPaid);
-
   set("sumIntlPaid", intlPaid);
   set("sumIntlPending", intlPending);
   set("sumIntlUnpaid", intlUnpaid);
   set("sumIntlCreditClubs", intlCreditClubs);
+  set("sumIntlTotalPayable", formatMoney(intlTotalPayable));
   set("sumIntlCollection", formatMoney(intlCollection));
   set("sumIntlOutstanding", formatMoney(intlOutstanding));
   set("sumIntlCreditAmount", formatMoney(intlCreditAmount));
-
   set("sumDistrictPaid", districtPaid);
   set("sumDistrictPending", districtPending);
   set("sumDistrictUnpaid", districtUnpaid);
+  set("sumDistrictTotalPayable", formatMoney(districtTotalPayable));
   set("sumDistrictCollection", formatMoney(districtBaseCollection));
   set("sumNewMemberCollection", formatMoney(newMemberCollection));
-  set("sumDistrictTotalCollection", formatMoney(districtBaseCollection + newMemberCollection));
+  set("sumDistrictTotalCollection", formatMoney(districtTotalCollection));
   set("sumDistrictOutstanding", formatMoney(districtBaseOutstanding));
   set("sumNewMemberOutstanding", formatMoney(newMemberOutstanding));
-  set("sumDistrictTotalOutstanding", formatMoney(districtBaseOutstanding + newMemberOutstanding));
-
+  set("sumDistrictTotalOutstanding", formatMoney(districtTotalOutstanding));
   set("sumNewMemberCount", totalNewMemberCount);
   set("sumNewMemberTotalFee", formatMoney(newMemberCollection + newMemberOutstanding));
 }
@@ -651,7 +653,7 @@ function renderPaymentRequests() {
   tbody.innerHTML = "";
 
   if (requests.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="request-empty">अहिले कुनै pending request छैन ।</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="request-empty">अहिले कुनै pending request छैन ।</td></tr>`;
     return;
   }
 
@@ -745,7 +747,6 @@ function buildFilteredReportRows() {
   const duesType = document.getElementById("reportDuesType") ? document.getElementById("reportDuesType").value : "Both";
   const statusFilter = document.getElementById("reportStatus") ? document.getElementById("reportStatus").value : "All";
   const rows = [];
-
   globalClubs.forEach(club => {
     const clubName = String(club["Club Name"] || "").trim();
     const lionId = String(club["Lion ID"] || "").trim();
@@ -753,78 +754,69 @@ function buildFilteredReportRows() {
 
     if (duesType === "International" || duesType === "Both") {
       const st = getStatusValue(club["Payment Status"]);
-      if (statusFilter === "All" || st === statusFilter) {
-        const rate = numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]);
-        rows.push({
-          clubName,
-          lionId,
-          duesType: "International",
-          amount: numberValue(club["International Due Amount"]) * rate,
-          status: st,
-          submittedBy: club["Submitted By"] || "",
-          contactNumber: club["Contact Number"] || "",
-          paymentDate: formatDisplayDate(club["Payment Date"])
-        });
+      const intlUsd = numberValue(club["International Due Amount"]);
+      const rate = numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]);
+      if (intlUsd < 0 && (statusFilter === "All" || statusFilter === "Paid")) {
+        rows.push({ clubName, lionId, duesType: "International Credit", amount: Math.abs(intlUsd * rate), status: "Credit / Adjustment", submittedBy: club["Submitted By"] || "", contactNumber: club["Contact Number"] || "", paymentDate: formatDisplayDate(club["Payment Date"]) });
+      } else if (intlUsd >= 0 && (statusFilter === "All" || st === statusFilter)) {
+        rows.push({ clubName, lionId, duesType: "International", amount: intlUsd * rate, status: st, submittedBy: club["Submitted By"] || "", contactNumber: club["Contact Number"] || "", paymentDate: formatDisplayDate(club["Payment Date"]) });
       }
     }
 
     if (duesType === "District" || duesType === "Both") {
       const st = getStatusValue(club["District Payment Status"]);
       if (statusFilter === "All" || st === statusFilter) {
-        rows.push({
-          clubName,
-          lionId,
-          duesType: "District",
-          amount: numberValue(club["District Due Amount"]) + (numberValue(club["New Member"]) * 100),
-          status: st,
-          submittedBy: club["Submitted By"] || "",
-          contactNumber: club["Contact Number"] || "",
-          paymentDate: formatDisplayDate(club["Payment Date"])
-        });
+        rows.push({ clubName, lionId, duesType: "District", amount: numberValue(club["District Due Amount"]) + (numberValue(club["New Member"]) * 100), status: st, submittedBy: club["Submitted By"] || "", contactNumber: club["Contact Number"] || "", paymentDate: formatDisplayDate(club["Payment Date"]) });
       }
     }
   });
-
   return rows;
+}
+
+function getReportTotals(rows) {
+  let intlTotal = 0, districtTotal = 0, creditTotal = 0;
+  rows.forEach(r => {
+    if (r.duesType === "International") intlTotal += Number(r.amount || 0);
+    else if (r.duesType === "District") districtTotal += Number(r.amount || 0);
+    else if (r.duesType === "International Credit") creditTotal += Number(r.amount || 0);
+  });
+  return { intlTotal, districtTotal, creditTotal, grandTotal: intlTotal + districtTotal };
+}
+
+function renderScreenReportTotal(rows) {
+  const box = document.getElementById("screenReportTotalBox");
+  if (!box) return;
+  if (!rows.length) { box.style.display = "none"; return; }
+  const totals = getReportTotals(rows);
+  let html = `<div>Total Records: <span>${rows.length}</span></div>`;
+  if (totals.intlTotal) html += `<div>International Total: <span>रु. ${Math.round(totals.intlTotal).toLocaleString()}</span></div>`;
+  if (totals.districtTotal) html += `<div>District Total: <span>रु. ${Math.round(totals.districtTotal).toLocaleString()}</span></div>`;
+  if (totals.creditTotal) html += `<div>Credit / Adjustment: <span>रु. ${Math.round(totals.creditTotal).toLocaleString()}</span></div>`;
+  html += `<div style="border-top:1px solid #003366;margin-top:6px;padding-top:6px;">Grand Total: <span>रु. ${Math.round(totals.grandTotal).toLocaleString()}</span></div>`;
+  box.innerHTML = html;
+  box.style.display = "block";
 }
 
 function renderAdminReport() {
   const btn = document.getElementById("viewReportBtn");
-  if (btn) {
-    btn.disabled = true;
-    btn.innerText = "⏳ Loading...";
-  }
-
+  if (btn) { btn.disabled = true; btn.innerText = "⏳ Loading..."; }
   setTimeout(function() {
     const tbody = document.getElementById("adminReportBody");
     currentReportRows = buildFilteredReportRows();
-
-    if (!tbody) {
-      if (btn) { btn.disabled = false; btn.innerText = "View Report"; }
-      return;
-    }
-
+    if (!tbody) { if (btn) { btn.disabled = false; btn.innerText = "View Report"; } return; }
     tbody.innerHTML = "";
     if (!currentReportRows.length) {
-      tbody.innerHTML = `<tr><td colspan="7" class="request-empty">यो filter अनुसार कुनै data भेटिएन ।</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="request-empty">यो filter अनुसार कुनै data भेटिएन ।</td></tr>`;
+      renderScreenReportTotal([]);
       if (btn) { btn.disabled = false; btn.innerText = "View Report"; }
       return;
     }
-
-    currentReportRows.forEach(item => {
+    currentReportRows.forEach((item, idx) => {
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><b>${item.clubName}</b></td>
-        <td>${item.lionId}</td>
-        <td>${item.duesType}</td>
-        <td>${Number(item.amount || 0).toLocaleString()}</td>
-        <td>${item.status}</td>
-        <td>${item.submittedBy}</td>
-        <td>${item.contactNumber}</td>
-      `;
+      tr.innerHTML = `<td>${idx + 1}</td><td><b>${item.clubName}</b></td><td>${item.lionId}</td><td>${item.duesType}</td><td>${Number(item.amount || 0).toLocaleString()}</td><td>${item.status}</td><td>${item.submittedBy}</td><td>${item.contactNumber}</td>`;
       tbody.appendChild(tr);
     });
-
+    renderScreenReportTotal(currentReportRows);
     if (btn) { btn.disabled = false; btn.innerText = "View Report"; }
   }, 60);
 }
@@ -832,16 +824,12 @@ function renderAdminReport() {
 function getReportFileBaseName() {
   const duesType = document.getElementById("reportDuesType") ? document.getElementById("reportDuesType").value : "Both";
   const statusFilter = document.getElementById("reportStatus") ? document.getElementById("reportStatus").value : "All";
-  const dateStr = new Date().toISOString().slice(0, 10);
-  return `Dues_Report_${duesType}_${statusFilter}_${dateStr}`;
+  return `Dues_Report_${duesType}_${statusFilter}_${new Date().toISOString().slice(0, 10)}`;
 }
 
 function ensureReportRowsReady() {
   currentReportRows = buildFilteredReportRows();
-  if (!currentReportRows.length) {
-    alert("यो filter अनुसार download गर्ने data छैन। पहिले filter मिलाएर View Report थिच्नुहोस्।");
-    return false;
-  }
+  if (!currentReportRows.length) { alert("यो filter अनुसार download गर्ने data छैन। पहिले filter मिलाएर View Report थिच्नुहोस्।"); return false; }
   return true;
 }
 
@@ -849,53 +837,33 @@ function downloadCurrentReportExcel() {
   if (!ensureReportRowsReady()) return;
   const btn = document.getElementById("excelReportBtn");
   if (btn) { btn.disabled = true; btn.innerText = "⏳ Excel..."; }
-
   try {
-    const headers = ["Club Name", "Lion ID", "Dues Type", "Amount", "Status", "Submitted By", "Contact Number", "Payment Date"];
+    const headers = ["S.N.", "Club Name", "Lion ID", "Dues Type", "Amount", "Status", "Submitted By", "Contact Number", "Payment Date"];
     let csv = "\ufeff" + headers.map(h => `"${h}"`).join(",") + "\\n";
-    let grandTotal = 0;
-    currentReportRows.forEach(r => {
-      grandTotal += Number(r.amount || 0);
-      const row = [r.clubName, r.lionId, r.duesType, Math.round(Number(r.amount || 0)), r.status, r.submittedBy, r.contactNumber, r.paymentDate];
+    currentReportRows.forEach((r, i) => {
+      const row = [i + 1, r.clubName, r.lionId, r.duesType, Math.round(Number(r.amount || 0)), r.status, r.submittedBy, r.contactNumber, r.paymentDate];
       csv += row.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",") + "\\n";
     });
-    csv += `"","","","${Math.round(grandTotal)}","Grand Total","","",""\\n`;
-
+    const totals = getReportTotals(currentReportRows);
+    csv += "\\n";
+    csv += `"Total Records","","","${currentReportRows.length}","","","","",""\\n`;
+    if (totals.intlTotal) csv += `"International Total","","","","${Math.round(totals.intlTotal)}","","","",""\\n`;
+    if (totals.districtTotal) csv += `"District Total","","","","${Math.round(totals.districtTotal)}","","","",""\\n`;
+    if (totals.creditTotal) csv += `"Credit / Adjustment","","","","${Math.round(totals.creditTotal)}","","","",""\\n`;
+    csv += `"Grand Total","","","","${Math.round(totals.grandTotal)}","","","",""\\n`;
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = getReportFileBaseName() + ".csv";
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function() {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 300);
-  } catch (err) {
-    alert("Excel download error: " + err.toString());
-  } finally {
-    if (btn) { btn.disabled = false; btn.innerText = "⬇ Excel"; }
-  }
+    const a = document.createElement("a"); a.href = url; a.download = getReportFileBaseName() + ".csv"; a.style.display = "none";
+    document.body.appendChild(a); a.click();
+    setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+  } catch (err) { alert("Excel download error: " + err.toString()); }
+  finally { if (btn) { btn.disabled = false; btn.innerText = "⬇ Excel"; } }
 }
 
 function loadImageAsDataURL(src) {
   return new Promise(resolve => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = function() {
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth || img.width;
-        canvas.height = img.naturalHeight || img.height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL("image/png"));
-      } catch (e) {
-        resolve(null);
-      }
-    };
+    const img = new Image(); img.crossOrigin = "anonymous";
+    img.onload = function() { try { const canvas = document.createElement("canvas"); canvas.width = img.naturalWidth || img.width; canvas.height = img.naturalHeight || img.height; canvas.getContext("2d").drawImage(img, 0, 0); resolve(canvas.toDataURL("image/png")); } catch (e) { resolve(null); } };
     img.onerror = function() { resolve(null); };
     img.src = src + "?t=" + new Date().getTime();
   });
@@ -905,84 +873,40 @@ async function downloadCurrentReportPDF() {
   if (!ensureReportRowsReady()) return;
   const btn = document.getElementById("pdfReportBtn");
   if (btn) { btn.disabled = true; btn.innerText = "⏳ PDF..."; }
-
   try {
     const jsPDFClass = window.jspdf && window.jspdf.jsPDF ? window.jspdf.jsPDF : null;
-    if (!jsPDFClass) {
-      alert("PDF library load हुन सकेन। Internet connection सहित फेरि try गर्नुहोस्।");
-      return;
-    }
-
+    if (!jsPDFClass) { alert("PDF library load हुन सकेन। Internet connection सहित फेरि try गर्नुहोस्।"); return; }
     const duesType = document.getElementById("reportDuesType").value;
     const statusFilter = document.getElementById("reportStatus").value;
     const doc = new jsPDFClass("l", "pt", "a4");
     const pageWidth = doc.internal.pageSize.getWidth();
-
     const logoData = await loadImageAsDataURL("logo.png");
-    if (logoData) {
-      try { doc.addImage(logoData, "PNG", 40, 22, 55, 55); } catch (e) {}
-    }
-
-    doc.setFontSize(18);
-    doc.setTextColor(0, 51, 102);
-    doc.text("Lions International", pageWidth / 2, 32, { align: "center" });
-    doc.setFontSize(14);
-    doc.text("District 325 F", pageWidth / 2, 52, { align: "center" });
-    doc.setFontSize(16);
-    doc.setTextColor(212, 175, 55);
-    doc.text("Club Dues Report", pageWidth / 2, 74, { align: "center" });
-    doc.setDrawColor(0, 51, 102);
-    doc.setLineWidth(1);
-    doc.line(40, 88, pageWidth - 40, 88);
-
-    doc.setFontSize(10);
-    doc.setTextColor(44, 62, 80);
-    doc.text(`Dues Type: ${duesType}`, 40, 108);
-    doc.text(`Status: ${statusFilter}`, 180, 108);
-    doc.text(`Generated Date: ${new Date().toLocaleString()}`, 320, 108);
-
-    if (typeof doc.autoTable !== "function") {
-      alert("PDF table plugin load हुन सकेन। Internet connection सहित फेरि try गर्नुहोस्।");
-      return;
-    }
-
-    let grandTotal = 0;
-    currentReportRows.forEach(r => grandTotal += Number(r.amount || 0));
-
-    const body = currentReportRows.map(r => [
-      r.clubName,
-      r.lionId,
-      r.duesType,
-      Math.round(Number(r.amount || 0)).toLocaleString(),
-      r.status,
-      r.submittedBy,
-      r.contactNumber,
-      r.paymentDate
-    ]);
-    body.push(["","","","", "", "", "Grand Total", Math.round(grandTotal).toLocaleString()]);
-
-    doc.autoTable({
-      startY: 125,
-      head: [["Club Name", "Lion ID", "Dues Type", "Amount", "Status", "Submitted By", "Contact", "Payment Date"]],
-      body,
-      styles: { fontSize: 8, cellPadding: 4 },
-      headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] },
-      alternateRowStyles: { fillColor: [248, 249, 250] },
-      columnStyles: { 0: { cellWidth: 170 }, 1: { cellWidth: 70 }, 2: { cellWidth: 80 }, 3: { cellWidth: 70 }, 4: { cellWidth: 85 } },
-      didDrawPage: function() {
-        const pageHeight = doc.internal.pageSize.getHeight();
-        doc.setFontSize(8);
-        doc.setTextColor(120);
-        doc.text("Design by: Nirajan Aryal | Mobile: 9851113811", pageWidth / 2, pageHeight - 18, { align: "center" });
-      }
-    });
-
+    if (logoData) { try { doc.addImage(logoData, "PNG", 40, 22, 55, 55); } catch (e) {} }
+    doc.setFontSize(18); doc.setTextColor(0, 51, 102); doc.text("Lions International", pageWidth / 2, 32, { align: "center" });
+    doc.setFontSize(14); doc.text("District 325 F", pageWidth / 2, 52, { align: "center" });
+    doc.setFontSize(16); doc.setTextColor(212, 175, 55); doc.text("Club Dues Report", pageWidth / 2, 74, { align: "center" });
+    doc.setDrawColor(0, 51, 102); doc.setLineWidth(1); doc.line(40, 88, pageWidth - 40, 88);
+    doc.setFontSize(10); doc.setTextColor(44, 62, 80);
+    doc.text(`Dues Type: ${duesType}`, 40, 108); doc.text(`Status: ${statusFilter}`, 180, 108); doc.text(`Total Records: ${currentReportRows.length}`, 300, 108); doc.text(`Generated Date: ${new Date().toLocaleString()}`, 430, 108);
+    if (typeof doc.autoTable !== "function") { alert("PDF table plugin load हुन सकेन। Internet connection सहित फेरि try गर्नुहोस्।"); return; }
+    const body = currentReportRows.map((r, i) => [i + 1, r.clubName, r.lionId, r.duesType, Math.round(Number(r.amount || 0)).toLocaleString(), r.status, r.submittedBy, r.contactNumber, r.paymentDate]);
+    doc.autoTable({ startY: 125, head: [["S.N.", "Club Name", "Lion ID", "Dues Type", "Amount", "Status", "Submitted By", "Contact", "Payment Date"]], body, styles: { fontSize: 8, cellPadding: 4 }, headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] }, alternateRowStyles: { fillColor: [248, 249, 250] }, columnStyles: { 0: { cellWidth: 35, halign: "center" }, 1: { cellWidth: 150 }, 2: { cellWidth: 65 }, 3: { cellWidth: 75 }, 4: { cellWidth: 70, halign: "right" }, 5: { cellWidth: 80 } }, didDrawPage: function() { const pageHeight = doc.internal.pageSize.getHeight(); doc.setFontSize(8); doc.setTextColor(120); doc.text("Design by: Nirajan Aryal | Mobile: 9851113811", pageWidth / 2, pageHeight - 18, { align: "center" }); } });
+    const totals = getReportTotals(currentReportRows);
+    let y = (doc.lastAutoTable && doc.lastAutoTable.finalY ? doc.lastAutoTable.finalY : 125) + 16;
+    if (y > doc.internal.pageSize.getHeight() - 90) { doc.addPage(); y = 40; }
+    const boxX = pageWidth - 310, boxW = 270;
+    let lines = [`Total Records: ${currentReportRows.length}`];
+    if (totals.intlTotal) lines.push(`International Total: Rs. ${Math.round(totals.intlTotal).toLocaleString()}`);
+    if (totals.districtTotal) lines.push(`District Total: Rs. ${Math.round(totals.districtTotal).toLocaleString()}`);
+    if (totals.creditTotal) lines.push(`Credit / Adjustment: Rs. ${Math.round(totals.creditTotal).toLocaleString()}`);
+    lines.push(`Grand Total: Rs. ${Math.round(totals.grandTotal).toLocaleString()}`);
+    const boxH = 22 + (lines.length * 14);
+    doc.setDrawColor(0, 51, 102); doc.setFillColor(248, 251, 255); doc.roundedRect(boxX, y, boxW, boxH, 6, 6, "FD");
+    doc.setFontSize(10); doc.setTextColor(0, 51, 102);
+    lines.forEach((line, idx) => doc.text(line, boxX + boxW - 12, y + 20 + (idx * 14), { align: "right" }));
     doc.save(getReportFileBaseName() + ".pdf");
-  } catch (err) {
-    alert("PDF download error: " + err.toString());
-  } finally {
-    if (btn) { btn.disabled = false; btn.innerText = "⬇ PDF"; }
-  }
+  } catch (err) { alert("PDF download error: " + err.toString()); }
+  finally { if (btn) { btn.disabled = false; btn.innerText = "⬇ PDF"; } }
 }
 
 function updateAdminNewMemberFee() {
@@ -1170,43 +1094,46 @@ function sendAdminDuesReminder() {
   const cName = document.getElementById("admClubName").value;
   const targetPhone = document.getElementById("admWhatsApp").value.trim().replace(/[-+ \s]/g, "");
 
-  if (!targetPhone) {
-    alert("यस क्लबको व्हाट्सएप नम्बर उपलब्ध छैन । कृपया पहिला नम्बर अपडेट गर्नुहोस् ।");
-    return;
-  }
+  if (!targetPhone) { alert("यस क्लबको व्हाट्सएप नम्बर उपलब्ध छैन । कृपया पहिला नम्बर अपडेट गर्नुहोस् ।"); return; }
 
   const rate = club ? numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]) : 0;
   const intlUsd = club ? numberValue(club["International Due Amount"]) : 0;
   const intlAmount = intlUsd * rate;
   const distAmount = club ? (numberValue(club["District Due Amount"]) + (numberValue(club["New Member"]) * 100)) : 0;
-
   const intlStatus = club ? getStatusValue(club["Payment Status"]) : "Unpaid";
   const distStatus = club ? getStatusValue(club["District Payment Status"]) : "Unpaid";
 
-  let intlText = "";
-  let distText = "";
+  let duesDetails = "💰 Dues Details\\n";
+  let bankDetails = "";
   let totalDue = 0;
 
-  if (intlUsd < 0) intlText = "Credit/Adjustment रु. " + Math.abs(intlAmount).toLocaleString();
-  else if (intlStatus === "Paid") intlText = "Paid ✅";
-  else { intlText = "रु. " + intlAmount.toLocaleString(); totalDue += intlAmount; }
+  if (intlUsd < 0) {
+    duesDetails += `International Dues : Credit/Adjustment रु. ${Math.abs(intlAmount).toLocaleString()}\\n`;
+  } else if (intlStatus !== "Paid") {
+    duesDetails += `International Dues : USD ${intlUsd.toLocaleString()}\\n`;
+    duesDetails += `नेपाली रुपैयाँ (हालको Lions Exchange Rate अनुसार): रु. ${intlAmount.toLocaleString()}\\n`;
+    totalDue += intlAmount;
+    bankDetails += "\\n" + INTERNATIONAL_BANK_DETAILS + "\\n";
+  }
 
-  if (distStatus === "Paid") distText = "Paid ✅";
-  else { distText = "रु. " + distAmount.toLocaleString(); totalDue += distAmount; }
+  if (distStatus !== "Paid") {
+    duesDetails += `District Dues : रु. ${distAmount.toLocaleString()}\\n`;
+    totalDue += distAmount;
+    bankDetails += "\\n" + DISTRICT_BANK_DETAILS + "\\n";
+  }
 
-  const duesDetails =
-    `Dues Details\n` +
-    `International Dues : ${intlText}\n` +
-    `District Dues : ${distText}\n` +
-    `Total : रु. ${totalDue.toLocaleString()}\n\n`;
+  duesDetails += `Total Payable : रु. ${totalDue.toLocaleString()}\\n`;
+
+  const portalLine = PORTAL_LINK && PORTAL_LINK !== "https://district325f.github.io/dues" ? `\\n🌐 District Dues Portal\\n${PORTAL_LINK}\\n` : "";
 
   const reminderMsg =
-    duesDetails +
-    `महत्वपूर्ण सूचना:\n` +
-    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ । कृपया वित्तीय विवरण पोर्टलमा चेक गरी समयमै भुक्तानी गरिदिनुहोला । धन्यवाद !\n\nलायन कृष्ण ज्योती शाक्य\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
+    `🔔 महत्त्वपूर्ण सूचना\\n\\n` +
+    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ। कृपया तल उल्लेखित विवरण अनुसार समयमै भुक्तानी गरी वित्तीय विवरण पोर्टलमा भौचर अपडेट गरिदिनुहुन अनुरोध गर्दछौं।\\n\\n` +
+    `━━━━━━━━━━━━━━━\\n` + duesDetails + `━━━━━━━━━━━━━━━\\n` + bankDetails + `━━━━━━━━━━━━━━━\\n` +
+    `भुक्तानी सम्पन्न भएपछि कृपया Dues Portal वा WhatsApp मार्फत भौचर पठाइदिनुहुन अनुरोध गर्दछौं।\\n` + portalLine +
+    `\\nधन्यवाद।\\n\\nलायन कृष्ण ज्योति शाक्य\\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
 
-  const waUrl = buildWhatsAppUrl(targetPhone, reminderMsg);
-  openWhatsAppReliable(waUrl);
+  openWhatsAppReliable(buildWhatsAppUrl(targetPhone, reminderMsg));
 }
 
 function buildWhatsAppUrl(phone, message) {
