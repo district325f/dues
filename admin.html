@@ -1152,46 +1152,73 @@ function sendAdminDuesReminder() {
   const cName = document.getElementById("admClubName").value;
   const targetPhone = document.getElementById("admWhatsApp").value.trim().replace(/[-+ \s]/g, "");
 
-  if (!targetPhone) { alert("यस क्लबको व्हाट्सएप नम्बर उपलब्ध छैन । कृपया पहिला नम्बर अपडेट गर्नुहोस् ।"); return; }
+  if (!targetPhone) {
+    alert("यस क्लबको व्हाट्सएप नम्बर उपलब्ध छैन । कृपया पहिला नम्बर अपडेट गर्नुहोस् ।");
+    return;
+  }
 
-  const rate = club ? numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]) : 0;
-  const intlUsd = club ? numberValue(club["International Due Amount"]) : 0;
-  const intlAmount = intlUsd * rate;
-  const distAmount = club ? (numberValue(club["District Due Amount"]) + (numberValue(club["New Member"]) * 100)) : 0;
-  const intlStatus = club ? getStatusValue(club["Payment Status"]) : "Unpaid";
-  const distStatus = club ? getStatusValue(club["District Payment Status"]) : "Unpaid";
+  if (!club) {
+    alert("क्लबको data भेटिएन। कृपया club select गरेर फेरि try गर्नुहोस्।");
+    return;
+  }
 
-  let duesDetails = "💰 Dues Details\\n";
+  const rate = numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]);
+  const intlUsd = numberValue(club["International Due Amount"]);
+  const intlNpr = intlUsd * rate;
+  const districtNpr = numberValue(club["District Due Amount"]) + (numberValue(club["New Member"]) * 100);
+
+  const intlStatus = getStatusValue(club["Payment Status"]);
+  const districtStatus = getStatusValue(club["District Payment Status"]);
+
+  let duesDetails = "💰 Dues Details\n";
   let bankDetails = "";
   let totalDue = 0;
+  let hasDue = false;
 
   if (intlUsd < 0) {
-    duesDetails += `International Dues : Credit/Adjustment रु. ${Math.abs(intlAmount).toLocaleString()}\\n`;
+    duesDetails += `International Dues : Credit/Adjustment रु. ${Math.abs(intlNpr).toLocaleString()}\n`;
   } else if (intlStatus !== "Paid") {
-    duesDetails += `International Dues : USD ${intlUsd.toLocaleString()}\\n`;
-    duesDetails += `नेपाली रुपैयाँ (हालको Lions Exchange Rate अनुसार): रु. ${intlAmount.toLocaleString()}\\n`;
-    totalDue += intlAmount;
-    bankDetails += "\\n" + INTERNATIONAL_BANK_DETAILS + "\\n";
+    duesDetails += `International Dues : USD ${intlUsd.toLocaleString()}\n`;
+    duesDetails += `नेपाली रुपैयाँ (हालको Lions Exchange Rate अनुसार): रु. ${Math.round(intlNpr).toLocaleString()}\n`;
+    totalDue += intlNpr;
+    hasDue = true;
+    bankDetails += "\n" + INTERNATIONAL_BANK_DETAILS + "\n";
   }
 
-  if (distStatus !== "Paid") {
-    duesDetails += `District Dues : रु. ${distAmount.toLocaleString()}\\n`;
-    totalDue += distAmount;
-    bankDetails += "\\n" + DISTRICT_BANK_DETAILS + "\\n";
+  if (districtStatus !== "Paid") {
+    duesDetails += `District Dues : रु. ${Math.round(districtNpr).toLocaleString()}\n`;
+    totalDue += districtNpr;
+    hasDue = true;
+    bankDetails += "\n" + DISTRICT_BANK_DETAILS + "\n";
   }
 
-  duesDetails += `Total Payable : रु. ${totalDue.toLocaleString()}\\n`;
+  if (!hasDue) {
+    alert("यो क्लबको payable dues बाँकी देखिएन। Reminder पठाउन आवश्यक छैन।");
+    return;
+  }
 
-  const portalLine = PORTAL_LINK && PORTAL_LINK !== "YOUR_PORTAL_LINK_HERE" ? `\\n🌐 District Dues Portal\\n${PORTAL_LINK}\\n` : "";
+  duesDetails += `Total Payable : रु. ${Math.round(totalDue).toLocaleString()}\n`;
+
+  const portalLine = PORTAL_LINK
+    ? `\n🌐 District Dues Portal\n${PORTAL_LINK}\n`
+    : "";
 
   const reminderMsg =
-    `🔔 महत्त्वपूर्ण सूचना\\n\\n` +
-    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ। कृपया तल उल्लेखित विवरण अनुसार समयमै भुक्तानी गरी वित्तीय विवरण पोर्टलमा भौचर अपडेट गरिदिनुहुन अनुरोध गर्दछौं।\\n\\n` +
-    `━━━━━━━━━━━━━━━\\n` + duesDetails + `━━━━━━━━━━━━━━━\\n` + bankDetails + `━━━━━━━━━━━━━━━\\n` +
-    `भुक्तानी सम्पन्न भएपछि कृपया Dues Portal वा WhatsApp मार्फत भौचर पठाइदिनुहुन अनुरोध गर्दछौं।\\n` + portalLine +
-    `\\nधन्यवाद।\\n\\nलायन कृष्ण ज्योति शाक्य\\nडिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
+    `🔔 महत्त्वपूर्ण सूचना\n\n` +
+    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ। कृपया तल उल्लेखित विवरण अनुसार समयमै भुक्तानी गरी वित्तीय विवरण पोर्टलमा भौचर अपडेट गरिदिनुहुन अनुरोध गर्दछौं।\n\n` +
+    `━━━━━━━━━━━━━━━\n` +
+    duesDetails +
+    `━━━━━━━━━━━━━━━\n` +
+    bankDetails +
+    `━━━━━━━━━━━━━━━\n` +
+    `भुक्तानी सम्पन्न भएपछि कृपया Dues Portal वा WhatsApp मार्फत भौचर पठाइदिनुहुन अनुरोध गर्दछौं।\n` +
+    portalLine +
+    `\nधन्यवाद।\n\n` +
+    `लायन कृष्ण ज्योति शाक्य\n` +
+    `डिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
 
-  openWhatsAppReliable(buildWhatsAppUrl(targetPhone, reminderMsg));
+  const waUrl = buildWhatsAppUrl(targetPhone, reminderMsg);
+  openWhatsAppReliable(waUrl);
 }
 
 function buildWhatsAppUrl(phone, message) {
