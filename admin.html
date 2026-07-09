@@ -801,6 +801,29 @@ async function rejectPaymentRequest(lionId) {
   }
 }
 
+
+function normalizeClubSortName(value) {
+  return String(value || "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9 ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function sortReportRowsAlphabetically(rows) {
+  return rows.sort((a, b) => {
+    const nameA = normalizeClubSortName(a.clubName);
+    const nameB = normalizeClubSortName(b.clubName);
+    if (nameA < nameB) return -1;
+    if (nameA > nameB) return 1;
+    const idA = String(a.lionId || "");
+    const idB = String(b.lionId || "");
+    if (idA < idB) return -1;
+    if (idA > idB) return 1;
+    return 0;
+  });
+}
+
 function buildFilteredReportRows() {
   const duesType = document.getElementById("reportDuesType") ? document.getElementById("reportDuesType").value : "Both";
   const statusFilter = document.getElementById("reportStatus") ? document.getElementById("reportStatus").value : "All";
@@ -855,21 +878,12 @@ function renderScreenReportTotal(rows) {
   box.style.display = "block";
 }
 
-
-function sortReportRowsAlphabetically(rows) {
-  return rows.sort((a, b) => {
-    const nameA = String(a.clubName || "").trim();
-    const nameB = String(b.clubName || "").trim();
-    return nameA.localeCompare(nameB, undefined, { sensitivity: "base" });
-  });
-}
-
 function renderAdminReport() {
   const btn = document.getElementById("viewReportBtn");
   if (btn) { btn.disabled = true; btn.innerText = "⏳ Loading..."; }
   setTimeout(function() {
     const tbody = document.getElementById("adminReportBody");
-    currentReportRows = buildFilteredReportRows();
+    currentReportRows = sortReportRowsAlphabetically(buildFilteredReportRows());
     if (!tbody) { if (btn) { btn.disabled = false; btn.innerText = "View Report"; } return; }
     tbody.innerHTML = "";
     if (!currentReportRows.length) {
@@ -896,7 +910,7 @@ function getReportFileBaseName() {
 
 function ensureReportRowsReady() {
   currentReportRows = buildFilteredReportRows();
-  if (!currentReportRows.length) { alert("यो filter अनुसार download गर्ने data छैन । पहिले filter मिलाएर View Report थिच्नुहोस् ।"); return false; }
+  if (!currentReportRows.length) { alert("यो filter अनुसार download गर्ने data छैन। पहिले filter मिलाएर View Report थिच्नुहोस्।"); return false; }
   return true;
 }
 
@@ -1167,7 +1181,7 @@ function sendAdminDuesReminder() {
   }
 
   if (!club) {
-    alert("क्लबको data भेटिएन । कृपया club select गरेर फेरि try गर्नुहोस् ।");
+    alert("क्लबको data भेटिएन। कृपया club select गरेर फेरि try गर्नुहोस्।");
     return;
   }
 
@@ -1202,7 +1216,7 @@ function sendAdminDuesReminder() {
   }
 
   if (!hasDue) {
-    alert("यो क्लबको payable dues बाँकी देखिएन । Reminder पठाउन आवश्यक छैन ।");
+    alert("यो क्लबको payable dues बाँकी देखिएन। Reminder पठाउन आवश्यक छैन।");
     return;
   }
 
@@ -1214,7 +1228,7 @@ function sendAdminDuesReminder() {
 
   const reminderMsg =
     `🔔 महत्त्वपूर्ण सूचना\n\n` +
-    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ । कृपया तल उल्लेखित विवरण अनुसार समयमै भुक्तानी गरी वित्तीय विवरण पोर्टलमा भौचर अपडेट गरिदिनुहुन अनुरोध गर्दगर्दछु ।\n\n` +
+    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ । कृपया तल उल्लेखित विवरण अनुसार समयमै भुक्तानी गरी वित्तीय विवरण पोर्टलमा भौचर अपडेट गरिदिनुहुन अनुरोध गर्दछु ।\n\n` +
     `━━━━━━━━━━━━━━━\n` +
     duesDetails +
     `━━━━━━━━━━━━━━━\n` +
