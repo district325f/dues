@@ -415,7 +415,7 @@ async function checkAdminLogin() {
   }
 
   setBtnLoading("adminLoginBtn", "⏳ Checking...", "Login as Admin", true);
-  setLoginStatus(true, "⏳ Username/Password checking... कृपया पर्खनुहोस्।");
+  setLoginStatus(true, "⏳ Username/Password checking... कृपया पर्खनुहोस् ।");
 
   try {
     const result = await postData({ actionType: "admin_login", username: user, password: pass });
@@ -527,7 +527,7 @@ function formatMoney(n) {
 
 
 async function applyInternationalCreditAdjustment() {
-  const ok = confirm("Negative International Dues भएका सबै क्लबलाई International Credit Adjustment अनुसार Sheet मा update गर्ने हो?");
+  const ok = confirm("Negative International Dues भएका सबै क्लबलाई International Credit Adjustment अनुसार Sheet मा update गर्ने हो ?");
   if (!ok) return;
 
   const btn = document.getElementById("creditAdjustmentBtn");
@@ -933,7 +933,7 @@ async function downloadCurrentReportPDF() {
   if (btn) { btn.disabled = true; btn.innerText = "⏳ PDF..."; }
   try {
     const jsPDFClass = window.jspdf && window.jspdf.jsPDF ? window.jspdf.jsPDF : null;
-    if (!jsPDFClass) { alert("PDF library load हुन सकेन। Internet connection सहित फेरि try गर्नुहोस्।"); return; }
+    if (!jsPDFClass) { alert("PDF library load हुन सकेन । Internet connection सहित फेरि try गर्नुहोस् ।"); return; }
     const duesType = document.getElementById("reportDuesType").value;
     const statusFilter = document.getElementById("reportStatus").value;
     const doc = new jsPDFClass("l", "pt", "a4");
@@ -1158,7 +1158,7 @@ function sendAdminDuesReminder() {
   }
 
   if (!club) {
-    alert("क्लबको data भेटिएन। कृपया club select गरेर फेरि try गर्नुहोस्।");
+    alert("क्लबको data भेटिएन । कृपया club select गरेर फेरि try गर्नुहोस् ।");
     return;
   }
 
@@ -1205,15 +1205,15 @@ function sendAdminDuesReminder() {
 
   const reminderMsg =
     `🔔 महत्त्वपूर्ण सूचना\n\n` +
-    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ। कृपया तल उल्लेखित विवरण अनुसार समयमै भुक्तानी गरी वित्तीय विवरण पोर्टलमा भौचर अपडेट गरिदिनुहुन अनुरोध गर्दछौं।\n\n` +
+    `तपाईँको क्लब *${cName}* को Dues भुक्तानी हुन बाँकी देखिएको छ । कृपया तल उल्लेखित विवरण अनुसार समयमै भुक्तानी गरी वित्तीय विवरण पोर्टलमा भौचर अपडेट गरिदिनुहुन अनुरोध गर्दछु ।\n\n` +
     `━━━━━━━━━━━━━━━\n` +
     duesDetails +
     `━━━━━━━━━━━━━━━\n` +
     bankDetails +
     `━━━━━━━━━━━━━━━\n` +
-    `भुक्तानी सम्पन्न भएपछि कृपया Dues Portal वा WhatsApp मार्फत भौचर पठाइदिनुहुन अनुरोध गर्दछौं।\n` +
+    `भुक्तानी सम्पन्न भएपछि कृपया Dues Portal वा WhatsApp मार्फत भौचर पठाइदिनुहुन अनुरोध गर्दछु ।\n` +
     portalLine +
-    `\nधन्यवाद।\n\n` +
+    `\nधन्यवाद !\n\n` +
     `लायन कृष्ण ज्योति शाक्य\n` +
     `डिष्ट्रिक्ट क्याबिनेट ट्रेजरर`;
 
