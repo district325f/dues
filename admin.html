@@ -277,6 +277,8 @@ body { margin:0; }
       <div class="report-controls">
         <div><label><b>Dues Type:</b></label><select id="reportDuesType"><option value="International">International</option><option value="District">District</option><option value="Both">Both</option></select></div>
         <div><label><b>Status:</b></label><select id="reportStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="All">All</option></select></div>
+        <div><label><b>From Date:</b></label><input type="date" id="reportFromDate"></div>
+        <div><label><b>To Date:</b></label><input type="date" id="reportToDate"></div>
         <div><button class="primary-btn" id="viewReportBtn" onclick="renderAdminReport()">View Report</button></div>
         <div><button class="download-report-btn excel" id="excelReportBtn" onclick="downloadCurrentReportExcel()">⬇ Excel</button></div>
         <div><button class="download-report-btn pdf" id="pdfReportBtn" onclick="downloadCurrentReportPDF()">⬇ PDF</button></div>
@@ -849,14 +851,39 @@ function sortReportRowsAlphabetically(rows) {
   });
 }
 
+function getSelectedReportDateRange() {
+  const fromEl = document.getElementById("reportFromDate");
+  const toEl = document.getElementById("reportToDate");
+  const fromValue = fromEl ? String(fromEl.value || "").trim() : "";
+  const toValue = toEl ? String(toEl.value || "").trim() : "";
+
+  const fromDate = fromValue ? new Date(fromValue + "T00:00:00") : null;
+  const toDate = toValue ? new Date(toValue + "T23:59:59.999") : null;
+
+  return { fromValue, toValue, fromDate, toDate };
+}
+
+function isPaymentDateWithinReportRange(value, range) {
+  if (!range.fromDate && !range.toDate) return true;
+  if (!value) return false;
+
+  const paymentDate = new Date(value);
+  if (isNaN(paymentDate.getTime())) return false;
+  if (range.fromDate && paymentDate < range.fromDate) return false;
+  if (range.toDate && paymentDate > range.toDate) return false;
+  return true;
+}
+
 function buildFilteredReportRows() {
   const duesType = document.getElementById("reportDuesType") ? document.getElementById("reportDuesType").value : "Both";
   const statusFilter = document.getElementById("reportStatus") ? document.getElementById("reportStatus").value : "All";
+  const dateRange = getSelectedReportDateRange();
   const rows = [];
   globalClubs.forEach(club => {
     const clubName = String(club["Club Name"] || "").trim();
     const lionId = String(club["Lion ID"] || "").trim();
     if (!clubName || !lionId) return;
+    if (!isPaymentDateWithinReportRange(club["Payment Date"], dateRange)) return;
 
     if (duesType === "International" || duesType === "Both") {
       const st = getStatusValue(club["Payment Status"]);
