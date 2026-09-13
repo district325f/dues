@@ -326,53 +326,6 @@ body { margin:0; }
       </div>
     </div>
 
-    <div class="admin-report-panel" id="adminReportPanel">
-      <h3>📊 Dues Report</h3>
-      <div class="report-controls">
-        <div><label><b>Dues Type:</b></label><select id="reportDuesType"><option value="International">International</option><option value="District">District</option><option value="Both">Both</option></select></div>
-        <div><label><b>Status:</b></label><select id="reportStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="All">All</option></select></div>
-        <div><label><b>From Date:</b></label><input type="date" id="reportFromDate"></div>
-        <div><label><b>To Date:</b></label><input type="date" id="reportToDate"></div>
-        <div><button class="primary-btn" id="viewReportBtn" onclick="renderAdminReport()">View Report</button></div>
-        <div><button class="download-report-btn excel" id="excelReportBtn" onclick="downloadCurrentReportExcel()">⬇ Excel</button></div>
-        <div><button class="download-report-btn pdf" id="pdfReportBtn" onclick="downloadCurrentReportPDF()">⬇ PDF</button></div>
-      </div>
-      <div class="report-table-wrap">
-        <table class="report-table">
-          <thead><tr><th style="width:45px;">S.N.</th><th>Club</th><th>Lion ID</th><th>Dues Type</th><th>Amount</th><th>Status</th><th>Submitted By</th><th>Contact</th></tr></thead>
-          <tbody id="adminReportBody"><tr><td colspan="8" class="request-empty">Report हेर्न माथिको option छानी View Report थिच्नुहोस् ।</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-
-    <div class="admin-report-panel" id="installationReportPanel">
-      <h3>🏛️ Club Installation Report</h3>
-      <div class="report-controls">
-        <div>
-          <label><b>Installation Status:</b></label>
-          <select id="installationReportStatus" onchange="handleInstallationReportStatusChange()">
-            <option value="Installation Completed">Installation Completed</option>
-            <option value="Installation Not Completed">Installation Not Completed</option>
-            <option value="All">All</option>
-          </select>
-        </div>
-        <div><label><b>From Date:</b></label><input type="date" id="installationReportFromDate"></div>
-        <div><label><b>To Date:</b></label><input type="date" id="installationReportToDate"></div>
-        <div><button class="primary-btn" id="viewInstallationReportBtn" onclick="renderInstallationReport()">View Report</button></div>
-        <div><button class="download-report-btn excel" id="installationExcelBtn" onclick="downloadInstallationReportExcel()">⬇ Excel</button></div>
-        <div><button class="download-report-btn pdf" id="installationPdfBtn" onclick="downloadInstallationReportPDF()">⬇ PDF</button></div>
-      </div>
-      <div class="report-table-wrap">
-        <table class="report-table installation-report-table">
-          <thead>
-            <tr><th>S.N.</th><th>Club</th><th>Lion ID</th><th>Installation Status</th><th>Installation Date</th></tr>
-          </thead>
-          <tbody id="installationReportBody"><tr><td colspan="5" class="request-empty">Report हेर्न माथिको option छानी View Report थिच्नुहोस् ।</td></tr></tbody>
-        </table>
-      </div>
-      <div id="installationReportSummary" class="installation-summary-box" style="display:none;"></div>
-    </div>
 
     <label><b>क्लब छान्नुहोस् (Select Club to Edit):</b></label>
     <select id="adminClubSelect" onchange="loadClubToAdminForm()"><option value="">-- Select a Club --</option></select>
@@ -425,6 +378,55 @@ body { margin:0; }
         <button class="primary-btn close-edit-btn" style="flex:1;" onclick="closeAdminEditForm()">Close Edit</button>
       </div>
     </div>
+
+    <div class="admin-report-panel" id="adminReportPanel">
+      <h3>📊 Dues Report</h3>
+      <div class="report-controls">
+        <div><label><b>Dues Type:</b></label><select id="reportDuesType"><option value="International">International</option><option value="District">District</option><option value="Both">Both</option></select></div>
+        <div><label><b>Status:</b></label><select id="reportStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="All">All</option></select></div>
+        <div><label><b>From Date:</b></label><input type="date" id="reportFromDate"></div>
+        <div><label><b>To Date:</b></label><input type="date" id="reportToDate"></div>
+        <div><button class="primary-btn" id="viewReportBtn" onclick="renderAdminReport()">View Report</button></div>
+        <div><button class="download-report-btn excel" id="excelReportBtn" onclick="downloadCurrentReportExcel()">⬇ Excel</button></div>
+        <div><button class="download-report-btn pdf" id="pdfReportBtn" onclick="downloadCurrentReportPDF()">⬇ PDF</button></div>
+      </div>
+      <div class="report-table-wrap">
+        <table class="report-table">
+          <thead><tr><th style="width:45px;">S.N.</th><th>Club</th><th>Lion ID</th><th>Dues Type</th><th>Amount</th><th>Status</th><th>Submitted By</th><th>Contact</th></tr></thead>
+          <tbody id="adminReportBody"><tr><td colspan="8" class="request-empty">Report हेर्न माथिको option छानी View Report थिच्नुहोस् ।</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <div class="admin-report-panel" id="installationReportPanel">
+      <h3>🏛️ Club Installation Report</h3>
+      <div class="report-controls">
+        <div>
+          <label><b>Installation Status:</b></label>
+          <select id="installationReportStatus" onchange="handleInstallationReportStatusChange()">
+            <option value="Installation Completed">Installation Completed</option>
+            <option value="Installation Not Completed">Installation Not Completed</option>
+            <option value="All">All</option>
+          </select>
+        </div>
+        <div><label><b>From Date:</b></label><input type="date" id="installationReportFromDate"></div>
+        <div><label><b>To Date:</b></label><input type="date" id="installationReportToDate"></div>
+        <div><button class="primary-btn" id="viewInstallationReportBtn" onclick="renderInstallationReport()">View Report</button></div>
+        <div><button class="download-report-btn excel" id="installationExcelBtn" onclick="downloadInstallationReportExcel()">⬇ Excel</button></div>
+        <div><button class="download-report-btn pdf" id="installationPdfBtn" onclick="downloadInstallationReportPDF()">⬇ PDF</button></div>
+      </div>
+      <div class="report-table-wrap">
+        <table class="report-table installation-report-table">
+          <thead>
+            <tr><th>S.N.</th><th>Club</th><th>Lion ID</th><th>Installation Status</th><th>Installation Date</th></tr>
+          </thead>
+          <tbody id="installationReportBody"><tr><td colspan="5" class="request-empty">Report हेर्न माथिको option छानी View Report थिच्नुहोस् ।</td></tr></tbody>
+        </table>
+      </div>
+      <div id="installationReportSummary" class="installation-summary-box" style="display:none;"></div>
+    </div>
+
   </div>
 </div>
 
