@@ -1931,7 +1931,7 @@ function openWhatsAppReliable(waUrl, reservedWindow) {
 <script id="universalDashboardScript">
 (function(){
   function txt(id){ const e=document.getElementById(id); return e ? String(e.innerText||e.textContent||'').trim() : ''; }
-  function numFromText(v){ const n=parseFloat(String(v||'0').replace(/[^0-9.-]/g,'')); return isNaN(n)?0:n; }
+  function numFromText(v){ const cleaned=String(v||'0').replace(/,/g,''); const matches=cleaned.match(/-?\d+(?:\.\d+)?/g); if(!matches||!matches.length)return 0; const n=parseFloat(matches[matches.length-1]); return isNaN(n)?0:n; }
   function money(n){ return 'रु. ' + Math.round(n||0).toLocaleString(); }
   function pct(n,total){ return total>0 ? ((n*100)/total).toFixed(1)+'% of clubs' : '0% of clubs'; }
   function statusClass(s){ s=String(s||''); return s==='Paid'||s==='Installation Completed'?'ud-paid':(s==='Pending Verification'?'ud-pending':'ud-unpaid'); }
