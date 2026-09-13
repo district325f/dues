@@ -1024,13 +1024,18 @@ function buildInstallationReportRows() {
     if (!clubName || !lionId) return;
 
     const install = installationAdminMap[lionId] || {};
-    const status = String(install.status || "").trim();
+    const savedStatus = String(install.status || "").trim();
     const installationDate = dateValueToKey(install.date || "");
 
-    // Installation report only includes clubs for which Installation Status has been saved.
-    if (!status) return;
+    // Existing/old clubs with blank Installation Status are treated as Not Completed.
+    const status = savedStatus === "Installation Completed"
+      ? "Installation Completed"
+      : "Installation Not Completed";
+
     if (statusFilter !== "All" && status !== statusFilter) return;
-    if (!isDateWithinRange(installationDate, fromDate, toDate)) return;
+
+    // Installation date range applies only to Completed report.
+    if (statusFilter === "Installation Completed" && !isDateWithinRange(installationDate, fromDate, toDate)) return;
 
     rows.push({ clubName, lionId, installationStatus: status, installationDate });
   });
@@ -1052,7 +1057,8 @@ function handleInstallationReportStatusChange() {
   const status = document.getElementById("installationReportStatus")?.value || "All";
   const fromEl = document.getElementById("installationReportFromDate");
   const toEl = document.getElementById("installationReportToDate");
-  const disableDates = status === "Installation Not Completed";
+  // Date range is meaningful only for clubs whose Installation is Completed.
+  const disableDates = status !== "Installation Completed";
   if (fromEl) { fromEl.disabled = disableDates; if (disableDates) fromEl.value = ""; }
   if (toEl) { toEl.disabled = disableDates; if (disableDates) toEl.value = ""; }
 }
