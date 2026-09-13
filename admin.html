@@ -280,146 +280,6 @@ body { margin:0; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 
-
-<style>
-/* =========================================================
-   UNIVERSAL ADMIN DASHBOARD DESIGN - UI ONLY / ADDITIVE
-   Existing IDs, data flow, Apps Script calls and report logic remain intact.
-   ========================================================= */
-:root{
-  --navy:#063d78;
-  --navy-dark:#03315f;
-  --blue:#087ff5;
-  --line:#cfe2f5;
-  --soft:#f5f9fd;
-  --text:#0f2f57;
-  --green:#16b364;
-  --red:#ef3434;
-  --orange:#f5a400;
-  --purple:#6e39e9;
-  --cyan:#1598bd;
-}
-body{background:#eef5fb;color:var(--text);}
-body.admin-dashboard-active .admin-page-header{display:none;}
-body.admin-dashboard-active .admin-page-container{
-  max-width:none;margin:0;padding:0;background:transparent;border-radius:0;box-shadow:none;
-}
-body.admin-dashboard-active .admin-dashboard-view{
-  display:block!important;margin:0;padding:0;background:transparent;border:0;border-radius:0;
-}
-
-.universal-dashboard-shell{display:grid;grid-template-columns:210px minmax(0,1fr);min-height:100vh;background:#f4f8fc;}
-.universal-sidebar{
-  position:sticky;top:0;height:100vh;overflow:auto;background:linear-gradient(180deg,#063f7d 0%,#04376e 62%,#052d59 100%);
-  color:#fff;padding:18px 12px 16px;box-sizing:border-box;box-shadow:3px 0 14px rgba(0,36,77,.12);z-index:30;
-}
-.universal-brand{text-align:center;padding:0 6px 18px;border-bottom:1px solid rgba(255,255,255,.14);margin-bottom:12px;}
-.universal-brand img{width:72px;height:72px;object-fit:contain;display:block;margin:0 auto 7px;}
-.universal-brand .brand-title{font-size:14px;font-weight:800;color:#ffd92f;line-height:1.35;}
-.universal-brand .brand-sub{font-size:12px;font-weight:700;color:#fff;margin-top:3px;}
-.universal-nav{display:flex;flex-direction:column;gap:4px;}
-.universal-nav button{
-  margin:0;width:100%;padding:11px 12px;border:0;border-radius:7px;background:transparent;color:#fff;text-align:left;
-  font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:10px;
-}
-.universal-nav button:hover,.universal-nav button.active{background:#0b80ed;box-shadow:0 4px 10px rgba(0,0,0,.12);}
-.universal-nav .nav-icon{width:21px;text-align:center;font-size:16px;}
-.universal-sidebar-footer{margin-top:26px;padding:15px 8px 0;border-top:1px solid rgba(255,255,255,.12);font-size:12px;line-height:1.5;color:#d9eaff;}
-.universal-sidebar-footer b{color:#fff;}
-
-.universal-main{min-width:0;padding:0 15px 22px;}
-.universal-topbar{
-  margin:0 -15px 8px;padding:10px 16px;background:#fff;border-bottom:1px solid #dbe6f1;display:flex;align-items:center;gap:14px;
-  position:sticky;top:0;z-index:20;box-shadow:0 2px 8px rgba(0,42,90,.06);
-}
-.universal-title-wrap{min-width:280px;}
-.universal-title{font-size:18px;font-weight:900;color:#0a2f5d;line-height:1.15;}
-.universal-subtitle{font-size:11px;color:#60748c;margin-top:2px;}
-.universal-search{margin-left:auto;display:flex;gap:7px;min-width:340px;max-width:480px;flex:1;}
-.universal-search input,.universal-search select{margin:0;padding:9px 10px;font-size:12px;background:#f9fbfd;border-color:#cdddec;}
-.universal-search input{flex:1;}
-.universal-search select{max-width:210px;}
-.universal-search button{width:auto;margin:0;padding:9px 12px;background:#083f79;color:#fff;border:0;font-weight:800;}
-.universal-userbox{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:12px;}
-.universal-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#0b4d91;color:white;font-size:18px;}
-.universal-userbox b{display:block;color:#0b2f59;}
-.universal-userbox span{display:block;color:#087ff5;font-size:10px;margin-top:1px;}
-
-.universal-welcome{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 10px;margin-bottom:8px;background:#eff7ff;border:1px solid #d7e9fb;border-radius:8px;}
-.universal-welcome-left{display:flex;align-items:center;gap:10px;}
-.universal-welcome-icon{font-size:26px;color:#087ff5;}
-.universal-welcome strong{font-size:15px;color:#0866d7;display:block;}
-.universal-welcome small{font-size:11px;color:#3e5875;}
-.universal-clock{font-size:11px;font-weight:800;color:#0871e1;white-space:nowrap;}
-
-.universal-kpis{display:grid;grid-template-columns:repeat(7,minmax(125px,1fr));gap:7px;margin:0 0 8px;}
-.universal-kpi{background:#fff;border:1px solid #cfdeec;border-radius:8px;padding:9px;display:flex;gap:9px;align-items:center;min-width:0;box-shadow:0 1px 4px rgba(0,42,90,.05);}
-.universal-kpi-icon{width:46px;height:46px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:23px;flex:none;}
-.universal-kpi .kpi-label{font-size:10.5px;font-weight:800;color:#163d68;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.universal-kpi .kpi-value{font-size:21px;font-weight:900;color:#0b2f59;line-height:1.05;margin-top:2px;}
-.universal-kpi .kpi-sub{font-size:9px;color:#536c87;margin-top:2px;}
-.kpi-blue .universal-kpi-icon{background:#087ff5}.kpi-green .universal-kpi-icon{background:#14b563}.kpi-red .universal-kpi-icon{background:#f03333}
-.kpi-cyan .universal-kpi-icon{background:#179bbb}.kpi-orange .universal-kpi-icon{background:#f59e0b}.kpi-purple .universal-kpi-icon{background:#6e3bea}.kpi-gold .universal-kpi-icon{background:#f5a800}
-
-.universal-quick{background:#eefdff;border:1px solid #b8e1f3;border-radius:8px;padding:7px 9px;margin-bottom:8px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
-.universal-quick-title{font-weight:900;font-size:13px;margin-right:5px;white-space:nowrap;}
-.universal-quick button{width:auto;margin:0;padding:8px 13px;border:0;border-radius:6px;color:#fff;font-weight:800;font-size:11px;cursor:pointer;}
-.q-blue{background:#0b84f5}.q-green{background:#18a957}.q-navy{background:#093f79}.q-purple{background:#6b37e7}.q-gold{background:#f4a800;color:#17385f!important}.q-cyan{background:#1698c2}
-.universal-quick button:hover{filter:brightness(.94)}
-
-/* Re-style existing blocks without touching their behavior */
-.admin-section-title{display:none;}
-.dashboard-summary-panel{border:1px solid #b7d2ea;background:#fff;border-radius:9px;padding:14px;margin:0 0 9px;box-shadow:0 2px 6px rgba(0,42,90,.05);}
-.summary-grid,.collection-grid{grid-template-columns:repeat(5,minmax(130px,1fr));gap:7px;}
-.summary-card{border:1px solid #d8e5f0;border-radius:7px;padding:10px;box-shadow:none;}
-.summary-card .num{font-size:18px}.summary-card .label{font-size:10.5px}
-
-.payment-requests-panel,.add-club-panel,.edit-club-panel,.admin-report-panel{
-  background:#fff;border:1px solid #1988f0;border-radius:9px;padding:13px;margin:0 0 9px;box-shadow:0 2px 7px rgba(0,42,90,.04);
-}
-.payment-requests-panel{border-color:#43ba77;}
-.add-club-panel{border-color:#e6a10d;background:#fffdf8;}
-.edit-club-panel{border-color:#1988f0;background:#f9fcff;}
-.payment-requests-panel h3,.add-club-panel h3,.edit-club-panel h3,.admin-report-panel h3{font-size:16px;color:#0c3768;}
-.request-note,.edit-club-help{font-size:11px;}
-.toggle-add-btn{width:auto;background:#f3aa13;color:#0d315b;padding:8px 12px;font-size:11px;}
-
-.report-panel-heading{margin-bottom:7px;}
-.report-collapse-btn{background:#0872cf;min-width:90px;padding:7px 10px;font-size:11px;}
-.report-controls{grid-template-columns:repeat(5,minmax(115px,1fr)) auto auto;gap:8px;}
-.report-controls label{font-size:10.5px;color:#12385f;}
-.report-controls input,.report-controls select,.report-controls button{padding:8px 9px;font-size:11px;margin:3px 0;}
-.report-table-wrap.compact-report-scroll{max-height:315px;border:1px solid #d5e2ee;border-radius:5px;}
-.report-table{box-shadow:none;border-radius:0;margin-top:0;}
-.report-table th,.report-table td{font-size:10.5px;padding:7px 8px;white-space:nowrap;}
-.report-table th{background:#063f7d;font-size:10px;}
-.requests-table th,.requests-table td{font-size:10.5px;padding:7px 8px;}
-
-/* Login stays simple and independent */
-body:not(.admin-dashboard-active) .admin-page-container{max-width:650px;margin-top:45px;}
-body:not(.admin-dashboard-active) .admin-page-header{display:flex;}
-
-@media(max-width:1280px){
-  .universal-dashboard-shell{grid-template-columns:190px minmax(0,1fr)}
-  .universal-kpis{grid-template-columns:repeat(4,1fr)}
-  .universal-search{min-width:260px}
-}
-@media(max-width:900px){
-  .universal-dashboard-shell{grid-template-columns:1fr}
-  .universal-sidebar{position:relative;height:auto;padding:10px;}
-  .universal-brand{display:none}.universal-nav{flex-direction:row;overflow-x:auto}.universal-nav button{width:auto;white-space:nowrap;padding:8px 10px}
-  .universal-sidebar-footer{display:none}.universal-main{padding:0 8px 18px}.universal-topbar{margin:0 -8px 8px;flex-wrap:wrap;position:relative}
-  .universal-title-wrap{min-width:0;flex:1}.universal-search{order:3;min-width:100%;max-width:none}.universal-userbox{display:none}
-  .universal-kpis{grid-template-columns:repeat(2,1fr)}.summary-grid,.collection-grid{grid-template-columns:repeat(2,1fr)}
-  .report-controls{grid-template-columns:1fr 1fr}.universal-welcome{align-items:flex-start}.universal-clock{white-space:normal;text-align:right}
-}
-@media(max-width:560px){
-  .universal-kpis{grid-template-columns:1fr 1fr}.universal-kpi{padding:7px}.universal-kpi-icon{width:38px;height:38px;font-size:18px}.universal-kpi .kpi-value{font-size:17px}
-  .summary-grid,.collection-grid,.report-controls{grid-template-columns:1fr}.universal-search{display:grid;grid-template-columns:1fr auto}.universal-search select{grid-column:1/-1;max-width:none}
-  .universal-welcome{flex-direction:column}.universal-clock{text-align:left}.universal-quick{align-items:stretch}.universal-quick button{flex:1 1 45%;}
-}
-</style>
-
 </head>
 <body>
 
@@ -441,76 +301,12 @@ body:not(.admin-dashboard-active) .admin-page-header{display:flex;}
   </div>
 
   <div class="admin-dashboard-view" id="adminDashboard" style="display:none;">
-
-  <div class="universal-dashboard-shell">
-    <aside class="universal-sidebar">
-      <div class="universal-brand">
-        <img src="logo.png" alt="Lions Logo" onerror="this.style.display='none'">
-        <div class="brand-title">Lions Clubs International<br>District 325 F</div>
-        <div class="brand-sub">We Serve</div>
-      </div>
-      <nav class="universal-nav">
-        <button class="active" type="button" onclick="scrollUniversalTo('universalTop')"><span class="nav-icon">🏠</span>Dashboard</button>
-        <button type="button" onclick="scrollUniversalTo('addNewClubPanel')"><span class="nav-icon">＋</span>Add New Club</button>
-        <button type="button" onclick="scrollUniversalTo('editClubPanel')"><span class="nav-icon">👥</span>Manage Clubs</button>
-        <button type="button" onclick="scrollUniversalTo('adminReportPanel')"><span class="nav-icon">📊</span>Dues Report</button>
-        <button type="button" onclick="scrollUniversalTo('installationReportPanel')"><span class="nav-icon">🏛️</span>Installation Report</button>
-        <button type="button" onclick="scrollUniversalTo('paymentRequestsPanel')"><span class="nav-icon">📋</span>Pending Requests</button>
-        <button type="button" onclick="toggleDistrictSummary(true)"><span class="nav-icon">💰</span>District Summary</button>
-        <button type="button" onclick="location.href='index.html'"><span class="nav-icon">🌐</span>Public Home</button>
-        <button type="button" onclick="logoutAdmin()"><span class="nav-icon">↩</span>Logout</button>
-      </nav>
-      <div class="universal-sidebar-footer">Together<br>We Make<br>a Difference<br><br>Designed by<br><b>Nirajan Aryal</b><br>📞 9851113811</div>
-    </aside>
-
-    <main class="universal-main" id="universalTop">
-      <div class="universal-topbar">
-        <div class="universal-title-wrap">
-          <div class="universal-title">☰ &nbsp; Lions Club Dues Management System</div>
-          <div class="universal-subtitle">District 325 F | Transparent Administration for a Stronger Tomorrow</div>
-        </div>
-        <div class="universal-search">
-          <input type="text" id="adminClubSearch" placeholder="Search Club Name or Lion ID..." oninput="filterAdminClubSearch()">
-          <select id="adminSearchResults" onchange="openClubFromSearch()"><option value="">-- Search Result --</option></select>
-          <button type="button" onclick="openClubFromSearch()">🔍</button>
-        </div>
-        <div class="universal-userbox">
-          <div class="universal-avatar">👤</div>
-          <div><b id="universalAdminName">Admin User</b><span>Super Admin</span></div>
-        </div>
-      </div>
-
-      <div class="universal-welcome">
-        <div class="universal-welcome-left"><div class="universal-welcome-icon">👥</div><div><strong>Welcome, <span id="universalWelcomeName">Admin User</span> !</strong><small>Manage club dues, installation records and system data easily from this dashboard.</small></div></div>
-        <div class="universal-clock" id="universalClock">--</div>
-      </div>
-
-      <div class="universal-kpis">
-        <div class="universal-kpi kpi-blue"><div class="universal-kpi-icon">👥</div><div><div class="kpi-label">Total Clubs</div><div class="kpi-value" id="topTotalClubs">0</div><div class="kpi-sub">Active Clubs</div></div></div>
-        <div class="universal-kpi kpi-green"><div class="universal-kpi-icon">✓</div><div><div class="kpi-label">International Paid</div><div class="kpi-value" id="topIntlPaid">0</div><div class="kpi-sub" id="topIntlPaidPct">0%</div></div></div>
-        <div class="universal-kpi kpi-red"><div class="universal-kpi-icon">✕</div><div><div class="kpi-label">International Unpaid</div><div class="kpi-value" id="topIntlUnpaid">0</div><div class="kpi-sub" id="topIntlUnpaidPct">0%</div></div></div>
-        <div class="universal-kpi kpi-cyan"><div class="universal-kpi-icon">▣</div><div><div class="kpi-label">District Dues Paid</div><div class="kpi-value" id="topDistrictPaid">0</div><div class="kpi-sub" id="topDistrictPaidPct">0%</div></div></div>
-        <div class="universal-kpi kpi-orange"><div class="universal-kpi-icon">✕</div><div><div class="kpi-label">District Dues Unpaid</div><div class="kpi-value" id="topDistrictUnpaid">0</div><div class="kpi-sub" id="topDistrictUnpaidPct">0%</div></div></div>
-        <div class="universal-kpi kpi-purple"><div class="universal-kpi-icon">🏛</div><div><div class="kpi-label">Installation Completed</div><div class="kpi-value" id="topInstallationCompleted">0</div><div class="kpi-sub" id="topInstallationCompletedPct">0%</div></div></div>
-        <div class="universal-kpi kpi-gold"><div class="universal-kpi-icon">◷</div><div><div class="kpi-label">Installation Pending</div><div class="kpi-value" id="topInstallationPending">0</div><div class="kpi-sub" id="topInstallationPendingPct">0%</div></div></div>
-      </div>
-
-      <div class="universal-quick">
-        <span class="universal-quick-title">⚡ Quick Actions</span>
-        <button type="button" class="q-blue" onclick="scrollUniversalTo('addNewClubPanel')">＋ Add New Club</button>
-        <button type="button" class="q-green" onclick="scrollUniversalTo('editClubPanel')">✎ Edit Club Details</button>
-        <button type="button" class="q-navy" onclick="scrollUniversalTo('adminReportPanel')">▥ View Dues Report</button>
-        <button type="button" class="q-purple" onclick="scrollUniversalTo('installationReportPanel')">🏛 View Installation Report</button>
-        <button type="button" class="q-gold" onclick="toggleDistrictSummary(true)">▣ District Dues Summary</button>
-        <button type="button" class="q-cyan" onclick="scrollUniversalTo('adminReportPanel')">⬇ Export Center</button>
-      </div>
-
     <div class="admin-section-title">
       <h2 style="color:#003366; margin-top:0;">Admin Dashboard</h2>
       <span class="auto-refresh-note">Auto refresh 5 sec — Select/Edit/Add form प्रयोग गर्दा pause हुन्छ</span>
     </div>
 
-    <div class="dashboard-summary-panel" id="dashboardSummaryPanel" style="display:none;">
+    <div class="dashboard-summary-panel" id="dashboardSummaryPanel">
       <h3>📊 Dashboard Summary <span style="font-size:12px;color:#4f5d75;">($ Rate: <span id="sumExchangeRate">-</span>)</span></h3>
 
       <div class="summary-grid">
@@ -715,8 +511,6 @@ body:not(.admin-dashboard-active) .admin-page-header{display:flex;}
       </div>
     </div>
 
-    </main>
-  </div>
   </div>
 </div>
 
@@ -757,72 +551,6 @@ let installationAdminMap = {};
 let installationDataLoaded = false;
 let currentInstallationReportRows = [];
 
-// ===== Universal Dashboard UI helpers (additive only) =====
-function scrollUniversalTo(id) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function toggleDistrictSummary(scrollAfterOpen = false) {
-  const panel = document.getElementById("dashboardSummaryPanel");
-  if (!panel) return;
-  const willOpen = panel.style.display === "none" || getComputedStyle(panel).display === "none";
-  panel.style.display = willOpen ? "block" : "none";
-  if (willOpen && scrollAfterOpen) setTimeout(() => panel.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-}
-
-function updateUniversalClock() {
-  const el = document.getElementById("universalClock");
-  if (!el) return;
-  try {
-    const now = new Date();
-    el.textContent = "📅 " + now.toLocaleString("en-GB", { weekday:"short", day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
-  } catch (e) {
-    el.textContent = "📅 " + new Date().toLocaleString();
-  }
-}
-
-function updateUniversalAdminName() {
-  const name = localStorage.getItem("duesAdminUser") || "Admin User";
-  const a = document.getElementById("universalAdminName");
-  const w = document.getElementById("universalWelcomeName");
-  if (a) a.textContent = name;
-  if (w) w.textContent = name;
-}
-
-function updateUniversalKpis() {
-  const clubs = Array.isArray(globalClubs) ? globalClubs : [];
-  const total = clubs.length;
-  let intlPaid = 0, intlUnpaid = 0, districtPaid = 0, districtUnpaid = 0, completed = 0;
-
-  clubs.forEach(club => {
-    const intl = String(club["Payment Status"] || "").trim();
-    const dist = String(club["District Payment Status"] || "").trim();
-    if (intl === "Paid") intlPaid++; else if (intl === "Unpaid") intlUnpaid++;
-    if (dist === "Paid") districtPaid++; else if (dist === "Unpaid") districtUnpaid++;
-
-    const id = String(club["Lion ID"] || "").trim();
-    const install = installationAdminMap[id] || {};
-    if (String(install.status || "").trim() === "Installation Completed") completed++;
-  });
-
-  const pendingInstall = Math.max(0, total - completed);
-  const pct = (n) => total ? ((n / total) * 100).toFixed(1) + "% of clubs" : "0% of clubs";
-  const set = (id,val) => { const e=document.getElementById(id); if(e) e.textContent=val; };
-
-  set("topTotalClubs", total);
-  set("topIntlPaid", intlPaid); set("topIntlPaidPct", pct(intlPaid));
-  set("topIntlUnpaid", intlUnpaid); set("topIntlUnpaidPct", pct(intlUnpaid));
-  set("topDistrictPaid", districtPaid); set("topDistrictPaidPct", pct(districtPaid));
-  set("topDistrictUnpaid", districtUnpaid); set("topDistrictUnpaidPct", pct(districtUnpaid));
-  set("topInstallationCompleted", completed); set("topInstallationCompletedPct", pct(completed));
-  set("topInstallationPending", pendingInstall); set("topInstallationPendingPct", pct(pendingInstall));
-}
-
-updateUniversalClock();
-setInterval(updateUniversalClock, 60000);
-
-
 function setBtnLoading(btnId, loadingText, normalText, isLoading) {
   const btn = document.getElementById(btnId);
   if (!btn) return;
@@ -860,7 +588,6 @@ async function loadData(options = {}) {
     renderPaymentRequests();
     renderAdminReport();
     renderDashboardSummary();
-    updateUniversalKpis();
     if (adminLoggedIn) loadAuditLogs(true);
   } catch (err) {
     if (!silent) alert("Data load error: " + err.toString());
@@ -868,11 +595,8 @@ async function loadData(options = {}) {
 }
 
 function showDashboard() {
-  document.body.classList.add("admin-dashboard-active");
   document.getElementById("adminDashboard").style.display = "block";
   document.getElementById("loginBox").style.display = "none";
-  updateUniversalAdminName();
-  updateUniversalClock();
   loadData({ silent: true });
   startAdminAutoRefresh();
 }
@@ -1378,7 +1102,6 @@ async function loadInstallationAdminData(silent = false) {
       };
     });
     installationDataLoaded = true;
-    updateUniversalKpis();
     return true;
   } catch (err) {
     if (!silent) alert("Installation data load error: " + err.toString());
