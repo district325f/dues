@@ -280,8 +280,94 @@ body { margin:0; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 
+
+<style id="universalDashboardStyles">
+/* ===== Universal Dashboard Preview - UI only, keeps existing working logic intact ===== */
+:root{
+  --ud-blue:#0b4f8a;
+  --ud-navy:#07376b;
+  --ud-border:#d9e7f5;
+  --ud-bg:#f4f8fc;
+  --ud-text:#0b2f63;
+  --ud-muted:#5b6f88;
+}
+html{font-size:16px;}
+body{background:var(--ud-bg)!important;color:var(--ud-text);font-size:16px!important;line-height:1.45;}
+.admin-page-header{display:none!important;}
+.admin-page-container{max-width:1480px!important;margin:18px auto!important;padding:20px!important;border-radius:16px!important;box-shadow:0 6px 24px rgba(18,72,120,.08)!important;}
+.admin-dashboard-view{background:transparent!important;border:none!important;padding:0!important;margin-top:8px!important;}
+.admin-section-title{margin:4px 0 14px!important;}
+.admin-section-title h2{font-size:28px!important;}
+.dashboard-summary-panel{display:none!important;}
+
+.ud-topbar{max-width:1480px;margin:0 auto;background:#fff;border-bottom:1px solid #e3edf7;box-shadow:0 2px 12px rgba(15,65,110,.06);padding:14px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:80;}
+.ud-brand{display:flex;align-items:center;gap:12px;min-width:430px;}
+.ud-brand img{width:62px;height:62px;object-fit:contain;}
+.ud-brand-title{font-size:26px;font-weight:900;color:#092f66;line-height:1.1;}
+.ud-brand-sub{font-size:15px;color:#536a84;margin-top:4px;}
+.ud-top-search{flex:1;display:flex;align-items:center;max-width:430px;margin-left:auto;}
+.ud-top-search input{height:46px;margin:0!important;border-radius:10px 0 0 10px!important;font-size:16px!important;border-right:0!important;}
+.ud-top-search button{width:54px;height:46px;margin:0!important;border-radius:0 10px 10px 0!important;border:none;background:#0b4f8a;color:#fff;font-size:20px;cursor:pointer;}
+.ud-profile{display:flex;align-items:center;gap:10px;padding-left:8px;}
+.ud-avatar{width:46px;height:46px;border-radius:50%;background:#0b4f8a;color:white;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.ud-profile strong{display:block;font-size:16px;}.ud-profile small{font-size:13px;color:#516b88;}
+.ud-logout{width:auto!important;padding:10px 14px!important;margin:0!important;background:#e74c3c!important;color:#fff!important;border:none!important;font-weight:800!important;}
+
+.ud-dashboard{display:block;margin-bottom:18px;}
+.ud-welcome{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;background:linear-gradient(90deg,#eef7ff,#f9fcff);border:1px solid #d6e8f9;border-radius:14px;padding:16px 18px;margin-bottom:16px;}
+.ud-welcome-main{display:flex;align-items:center;gap:14px;}.ud-wave{font-size:34px;background:white;border-radius:12px;padding:8px 11px;box-shadow:0 3px 10px rgba(0,0,0,.05);}
+.ud-welcome h2{font-size:28px;margin:0;color:#0b57c7;}.ud-welcome p{font-size:16px;margin:2px 0 0;color:#314e70;}
+.ud-quote,.ud-date{background:#fff;border:1px solid #dce8f5;border-radius:10px;padding:12px 16px;font-size:15px;color:#0a55c7;min-height:48px;display:flex;align-items:center;}
+.ud-quote{border-left:4px solid #f5b400;font-weight:800;}
+
+.ud-kpis{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:12px;margin-bottom:16px;}
+.ud-kpi{border-radius:14px;color:#fff;padding:14px 14px 12px;min-height:146px;box-shadow:0 7px 18px rgba(16,74,120,.12);display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;}
+.ud-kpi-top{display:flex;align-items:center;gap:10px;}.ud-kpi-icon{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;font-size:26px;}
+.ud-kpi-label{font-size:16px;font-weight:800;line-height:1.2;}.ud-kpi-num{font-size:32px;font-weight:900;line-height:1;margin-top:6px;}.ud-kpi-sub{font-size:14px;margin-top:4px;opacity:.96;}.ud-kpi-btn{margin-top:10px;padding:8px 10px;background:rgba(0,0,0,.12);border-radius:8px;text-align:center;font-weight:800;font-size:14px;cursor:pointer;}
+.ud-blue{background:linear-gradient(135deg,#2b98ff,#0562d8)}.ud-green{background:linear-gradient(135deg,#12bd70,#04964f)}.ud-red{background:linear-gradient(135deg,#ff5260,#df2234)}.ud-cyan{background:linear-gradient(135deg,#1cb5d4,#07839f)}.ud-orange{background:linear-gradient(135deg,#ff8b32,#f05712)}.ud-purple{background:linear-gradient(135deg,#9752ff,#5f1fe3)}.ud-gold{background:linear-gradient(135deg,#ffd45a,#e7a900);color:#072e63}
+
+.ud-main-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin-bottom:14px;}.ud-card{background:#fff;border:1px solid var(--ud-border);border-radius:14px;padding:16px;box-shadow:0 4px 16px rgba(25,83,130,.06);}.ud-card-title{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:23px;font-weight:900;color:#0b3268;margin-bottom:14px;}.ud-card-title select{width:auto!important;min-width:190px;margin:0!important;padding:9px 12px!important;font-size:15px!important;}
+.ud-chart{height:270px;display:flex;align-items:flex-end;gap:28px;padding:18px 18px 4px;border-left:1px solid #b8cde3;border-bottom:1px solid #b8cde3;background:repeating-linear-gradient(to top,transparent 0,transparent 49px,#e7eff8 50px);}.ud-bar-wrap{flex:1;text-align:center;min-width:0;}.ud-bar-value{font-size:17px;font-weight:900;color:#0b3268;margin-bottom:6px;white-space:nowrap}.ud-bar{width:70%;max-width:110px;min-width:48px;margin:0 auto;border-radius:6px 6px 0 0;min-height:6px;transition:height .4s ease}.ud-bar-label{font-size:14px;font-weight:700;color:#21466e;margin-top:8px;white-space:nowrap}
+.ud-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}.ud-action{border:none;border-radius:10px;color:#fff;padding:18px 12px;min-height:98px;font-size:16px;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.08);}.ud-action span{font-size:26px}.ud-action.blue{background:#1689f7}.ud-action.green{background:#08aa5a}.ud-action.navy{background:#0b4f8a}.ud-action.purple{background:#793af0}.ud-action.gold{background:#f5b91c;color:#092f66}.ud-action.cyan{background:#1199b7}
+
+.ud-recent-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}.ud-table{width:100%;border-collapse:collapse;margin-top:0!important;box-shadow:none!important}.ud-table th{background:#0b4f8a!important;color:white!important;font-size:14px!important;padding:10px!important}.ud-table td{font-size:15px!important;padding:10px!important}.ud-table-wrap{overflow:auto;max-height:285px}.ud-status{display:inline-block;min-width:82px;padding:4px 9px;border-radius:6px;color:#fff;font-size:13px;font-weight:800;text-align:center}.ud-paid{background:#08aa5a}.ud-unpaid{background:#ef3340}.ud-pending{background:#efa900;color:#183b64}
+.ud-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:10px}.ud-footer-note{flex:1;background:linear-gradient(90deg,#eafff2,#f2fff8);border:1px solid #c8efd7;border-radius:10px;padding:14px 16px;font-size:16px;color:#154b3a}.ud-footer-brand{border-left:4px solid #f2b400;padding:8px 12px;font-size:14px;font-weight:800;color:#123e72;}
+
+/* Keep existing operational panels readable and large-font */
+.payment-requests-panel,.add-club-panel,.edit-club-panel,.admin-report-panel,.audit-log-panel{border-radius:12px!important;box-shadow:0 4px 14px rgba(20,70,110,.05);}
+.payment-requests-panel h3,.add-club-panel h3,.edit-club-panel h3,.admin-report-panel h3,.audit-log-panel h3{font-size:22px!important;}
+label,.request-note,.edit-club-help,.installation-radio-label{font-size:15px!important;}
+input,select,button{font-size:16px!important;min-height:44px;}
+.report-table th,.report-table td,.requests-table th,.requests-table td,.audit-table th,.audit-table td{font-size:14px!important;}
+.report-table td,.requests-table td,.audit-table td{padding:10px 9px!important;}
+
+@media(max-width:1200px){.ud-kpis{grid-template-columns:repeat(4,1fr)}.ud-main-grid,.ud-recent-grid{grid-template-columns:1fr}.ud-brand{min-width:360px}.ud-welcome{grid-template-columns:1fr 1fr}.ud-welcome-main{grid-column:1/-1}}
+@media(max-width:800px){.ud-topbar{position:static;flex-wrap:wrap;padding:12px}.ud-brand{min-width:0;width:100%}.ud-brand img{width:52px;height:52px}.ud-brand-title{font-size:21px}.ud-brand-sub{font-size:13px}.ud-top-search{order:3;max-width:none;width:100%}.ud-profile{margin-left:auto}.admin-page-container{margin:8px!important;padding:10px!important}.ud-welcome{grid-template-columns:1fr}.ud-welcome-main{grid-column:auto}.ud-welcome h2{font-size:23px}.ud-kpis{grid-template-columns:repeat(2,1fr)}.ud-kpi{min-height:135px}.ud-main-grid,.ud-recent-grid{grid-template-columns:1fr}.ud-actions{grid-template-columns:1fr 1fr}.ud-chart{gap:10px;height:230px;padding-left:8px;padding-right:8px}.ud-bar-value{font-size:13px}.ud-bar-label{font-size:12px}.ud-card-title{font-size:20px;flex-wrap:wrap}.ud-footer{flex-direction:column;align-items:stretch}.ud-footer-brand{border-left:none;border-top:3px solid #f2b400}.report-controls{grid-template-columns:1fr!important}}
+@media(max-width:480px){html{font-size:15px}.ud-kpis{grid-template-columns:1fr}.ud-actions{grid-template-columns:1fr}.ud-kpi-label{font-size:17px}.ud-kpi-num{font-size:34px}.ud-profile div:not(.ud-avatar){display:none}.ud-chart{height:210px}.ud-bar{width:82%}.ud-bar-label{white-space:normal}.ud-top-search input{font-size:15px!important}}
+</style>
+
 </head>
 <body>
+
+<div class="ud-topbar" id="udTopbar">
+  <div class="ud-brand">
+    <img src="logo.png" alt="Lions Logo" onerror="this.style.display='none'">
+    <div>
+      <div class="ud-brand-title">Lions Club Dues Management System</div>
+      <div class="ud-brand-sub">District 325 F | Transparent Administration for a Stronger Tomorrow.</div>
+    </div>
+  </div>
+  <div class="ud-top-search">
+    <input id="udGlobalSearch" type="text" placeholder="Search Club Name or Lion ID..." onkeydown="if(event.key==='Enter') udOpenSearchClub()">
+    <button type="button" onclick="udOpenSearchClub()">⌕</button>
+  </div>
+  <div class="ud-profile">
+    <div class="ud-avatar">👤</div>
+    <div><strong id="udAdminName">Admin User</strong><small>Administrator</small></div>
+    <button type="button" class="ud-logout" onclick="logoutAdmin()">Logout</button>
+  </div>
+</div>
+
 
 <div class="admin-page-header">
   <h2>🔒 Lions Club Dues Admin Panel</h2>
@@ -305,6 +391,59 @@ body { margin:0; }
       <h2 style="color:#003366; margin-top:0;">Admin Dashboard</h2>
       <span class="auto-refresh-note">Auto refresh 5 sec — Select/Edit/Add form प्रयोग गर्दा pause हुन्छ</span>
     </div>
+
+
+    <section class="ud-dashboard" id="universalDashboardPreview">
+      <div class="ud-welcome">
+        <div class="ud-welcome-main">
+          <div class="ud-wave">👋</div>
+          <div><h2>Welcome, <span id="udWelcomeName">Admin User</span> !</h2><p>Manage club dues, installation records and system data easily from this dashboard.</p></div>
+        </div>
+        <div class="ud-quote">“Stronger Clubs<br>Stronger Communities”</div>
+        <div class="ud-date" id="udDateTime">📅 --</div>
+      </div>
+
+      <div class="ud-kpis">
+        <div class="ud-kpi ud-blue"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">👥</div><div><div class="ud-kpi-label">Total Clubs</div><div class="ud-kpi-num" id="udTotalClubs">0</div></div></div><div class="ud-kpi-sub">Active Clubs</div></div><div class="ud-kpi-btn" onclick="udScrollTo('editClubPanel')">View Clubs →</div></div>
+        <div class="ud-kpi ud-green"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">✅</div><div><div class="ud-kpi-label">International Paid</div><div class="ud-kpi-num" id="udIntlPaid">0</div></div></div><div class="ud-kpi-sub" id="udIntlPaidPct">0% of clubs</div></div><div class="ud-kpi-btn" onclick="udOpenDues('International','Paid')">View Details →</div></div>
+        <div class="ud-kpi ud-red"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">❌</div><div><div class="ud-kpi-label">International Unpaid</div><div class="ud-kpi-num" id="udIntlUnpaid">0</div></div></div><div class="ud-kpi-sub" id="udIntlUnpaidPct">0% of clubs</div></div><div class="ud-kpi-btn" onclick="udOpenDues('International','Unpaid')">View Details →</div></div>
+        <div class="ud-kpi ud-cyan"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">🪙</div><div><div class="ud-kpi-label">District Dues Paid</div><div class="ud-kpi-num" id="udDistrictPaid">0</div></div></div><div class="ud-kpi-sub" id="udDistrictPaidPct">0% of clubs</div></div><div class="ud-kpi-btn" onclick="udOpenDues('District','Paid')">View Details →</div></div>
+        <div class="ud-kpi ud-orange"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">⚠️</div><div><div class="ud-kpi-label">District Dues Unpaid</div><div class="ud-kpi-num" id="udDistrictUnpaid">0</div></div></div><div class="ud-kpi-sub" id="udDistrictUnpaidPct">0% of clubs</div></div><div class="ud-kpi-btn" onclick="udOpenDues('District','Unpaid')">View Details →</div></div>
+        <div class="ud-kpi ud-purple"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">🏛️</div><div><div class="ud-kpi-label">Installation Completed</div><div class="ud-kpi-num" id="udInstallCompleted">0</div></div></div><div class="ud-kpi-sub" id="udInstallCompletedPct">0% of clubs</div></div><div class="ud-kpi-btn" onclick="udOpenInstall('Installation Completed')">View Details →</div></div>
+        <div class="ud-kpi ud-gold"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">🕒</div><div><div class="ud-kpi-label">Installation Pending</div><div class="ud-kpi-num" id="udInstallPending">0</div></div></div><div class="ud-kpi-sub" id="udInstallPendingPct">0% of clubs</div></div><div class="ud-kpi-btn" onclick="udOpenInstall('Installation Not Completed')">View Details →</div></div>
+      </div>
+
+      <div class="ud-main-grid">
+        <div class="ud-card">
+          <div class="ud-card-title"><span>📊 Financial Overview</span><select id="udChartMode" onchange="udRefreshDashboard()"><option value="intl">International Dues</option><option value="district">District Dues</option></select></div>
+          <div class="ud-chart">
+            <div class="ud-bar-wrap"><div class="ud-bar-value" id="udBarVal1">रु. 0</div><div class="ud-bar ud-blue" id="udBar1"></div><div class="ud-bar-label">Total Payable</div></div>
+            <div class="ud-bar-wrap"><div class="ud-bar-value" id="udBarVal2">रु. 0</div><div class="ud-bar ud-green" id="udBar2"></div><div class="ud-bar-label">Collection</div></div>
+            <div class="ud-bar-wrap"><div class="ud-bar-value" id="udBarVal3">रु. 0</div><div class="ud-bar" style="background:#f5a900" id="udBar3"></div><div class="ud-bar-label">Outstanding</div></div>
+            <div class="ud-bar-wrap"><div class="ud-bar-value" id="udBarVal4">रु. 0</div><div class="ud-bar ud-red" id="udBar4"></div><div class="ud-bar-label" id="udBarLabel4">Credit / Adjustment</div></div>
+          </div>
+        </div>
+        <div class="ud-card">
+          <div class="ud-card-title">⚡ Quick Actions</div>
+          <div class="ud-actions">
+            <button type="button" class="ud-action blue" onclick="udOpenAddClub()"><span>👥</span>+ Add New Club</button>
+            <button type="button" class="ud-action green" onclick="udScrollTo('editClubPanel')"><span>✏️</span>Edit Club Details</button>
+            <button type="button" class="ud-action navy" onclick="udScrollTo('adminReportPanel')"><span>📊</span>View Dues Report</button>
+            <button type="button" class="ud-action purple" onclick="udScrollTo('installationReportPanel')"><span>🏛️</span>View Installation Report</button>
+            <button type="button" class="ud-action gold" onclick="udScrollTo('adminReportPanel')"><span>📄</span>District Dues Summary</button>
+            <button type="button" class="ud-action cyan" onclick="udScrollTo('adminReportPanel')"><span>☁️</span>Export Center</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ud-recent-grid">
+        <div class="ud-card"><div class="ud-card-title"><span>📄 Recent Dues Records</span><button type="button" style="width:auto" onclick="udScrollTo('adminReportPanel')">View All →</button></div><div class="ud-table-wrap"><table class="ud-table"><thead><tr><th>S.N.</th><th>Club</th><th>Dues Type</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody id="udRecentDuesBody"><tr><td colspan="6">Loading...</td></tr></tbody></table></div></div>
+        <div class="ud-card"><div class="ud-card-title"><span>🏛️ Recent Installation Records</span><button type="button" style="width:auto" onclick="udScrollTo('installationReportPanel')">View All →</button></div><div class="ud-table-wrap"><table class="ud-table"><thead><tr><th>S.N.</th><th>Club</th><th>Status</th><th>Date</th><th>Updated By</th></tr></thead><tbody id="udRecentInstallBody"><tr><td colspan="5">Loading...</td></tr></tbody></table></div></div>
+      </div>
+
+      <div class="ud-footer"><div class="ud-footer-note">✅ तपाईं सधैँ अपडेटेड रहनुहोस् &nbsp;|&nbsp; Keep Clubs Strong, Keep Service Going!</div><div class="ud-footer-brand">Lions Clubs International<br>District 325 F | We Serve</div></div>
+    </section>
+
 
     <div class="dashboard-summary-panel" id="dashboardSummaryPanel">
       <h3>📊 Dashboard Summary <span style="font-size:12px;color:#4f5d75;">($ Rate: <span id="sumExchangeRate">-</span>)</span></h3>
@@ -1786,6 +1925,46 @@ function openWhatsAppReliable(waUrl, reservedWindow) {
     window.location.href = waUrl;
   }
 }
+</script>
+
+
+<script id="universalDashboardScript">
+(function(){
+  function txt(id){ const e=document.getElementById(id); return e ? String(e.innerText||e.textContent||'').trim() : ''; }
+  function numFromText(v){ const n=parseFloat(String(v||'0').replace(/[^0-9.-]/g,'')); return isNaN(n)?0:n; }
+  function money(n){ return 'रु. ' + Math.round(n||0).toLocaleString(); }
+  function pct(n,total){ return total>0 ? ((n*100)/total).toFixed(1)+'% of clubs' : '0% of clubs'; }
+  function statusClass(s){ s=String(s||''); return s==='Paid'||s==='Installation Completed'?'ud-paid':(s==='Pending Verification'?'ud-pending':'ud-unpaid'); }
+  function dateKey(v){ if(!v)return ''; try{const d=new Date(v);if(!isNaN(d.getTime()))return d.toISOString().slice(0,10)}catch(e){} return String(v).slice(0,10); }
+  function esc(v){ return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+  window.udScrollTo=function(id){ const e=document.getElementById(id); if(e){e.scrollIntoView({behavior:'smooth',block:'start'});} };
+  window.udOpenAddClub=function(){ udScrollTo('addNewClubPanel'); const box=document.getElementById('addClubFormBox'); if(box&&box.style.display!=='block'&&typeof toggleAddClubForm==='function') toggleAddClubForm(); };
+  window.udOpenDues=function(type,status){ const t=document.getElementById('reportDuesType'), s=document.getElementById('reportStatus'); if(t)t.value=type;if(s)s.value=status;if(typeof renderAdminReport==='function')renderAdminReport();udScrollTo('adminReportPanel'); };
+  window.udOpenInstall=function(status){ const s=document.getElementById('installationReportStatus');if(s)s.value=status;if(typeof handleInstallationReportStatusChange==='function')handleInstallationReportStatusChange();if(typeof renderInstallationReport==='function')renderInstallationReport();udScrollTo('installationReportPanel'); };
+  window.udOpenSearchClub=function(){ const q=(document.getElementById('udGlobalSearch')?.value||'').trim().toLowerCase();if(!q)return; const club=(window.globalClubs||[]).find(c=>String(c['Club Name']||'').toLowerCase().includes(q)||String(c['Lion ID']||'').toLowerCase()===q);if(!club){alert('Club फेला परेन।');return;} const sel=document.getElementById('adminClubSelect');if(sel){sel.value=String(club['Lion ID']||'');if(typeof loadClubToAdminForm==='function')loadClubToAdminForm();udScrollTo('editClubPanel');}};
+
+  function setText(id,v){const e=document.getElementById(id);if(e)e.innerText=v;}
+  function setBar(id,value,max){const e=document.getElementById(id);if(e)e.style.height=Math.max(8,Math.min(205,(value/(max||1))*205))+'px';}
+  function recentDues(){const b=document.getElementById('udRecentDuesBody');if(!b)return; const rows=(window.globalClubs||[]).slice().sort((a,b)=>dateKey(b['Payment Date']).localeCompare(dateKey(a['Payment Date']))).slice(0,5); if(!rows.length){b.innerHTML='<tr><td colspan="6">No records</td></tr>';return;} b.innerHTML=rows.map((c,i)=>{const rate=numFromText(c['__effectiveIntlRate']||c['__exchangeRate']); const usd=numFromText(c['International Due Amount']); const amount=usd*rate; const st=String(c['Payment Status']||'Unpaid').trim()||'Unpaid'; return `<tr><td>${i+1}</td><td>${esc(c['Club Name'])}</td><td>International</td><td>${esc(Math.round(amount).toLocaleString())}</td><td><span class="ud-status ${statusClass(st)}">${esc(st)}</span></td><td>${esc(dateKey(c['Payment Date'])||'-')}</td></tr>`;}).join('');}
+  function recentInstall(){const b=document.getElementById('udRecentInstallBody');if(!b)return; const rows=(window.globalClubs||[]).map(c=>{const id=String(c['Lion ID']||'');const x=(window.installationAdminMap||{})[id]||{};return {club:c,status:x.status==='Installation Completed'?'Installation Completed':'Installation Not Completed',date:x.date||''};}).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,5); if(!rows.length){b.innerHTML='<tr><td colspan="5">No records</td></tr>';return;} b.innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.club['Club Name'])}</td><td><span class="ud-status ${statusClass(r.status)}">${r.status==='Installation Completed'?'Completed':'Not Completed'}</span></td><td>${esc(r.date||'-')}</td><td>${r.date?esc(localStorage.getItem('duesAdminUser')||'Admin'):'-'}</td></tr>`).join('');}
+
+  window.udRefreshDashboard=function(){
+    if(typeof window.globalClubs==='undefined') return;
+    const clubs=window.globalClubs||[], total=clubs.length;
+    let ip=0,iu=0,dp=0,du=0,ic=0;
+    clubs.forEach(c=>{const a=String(c['Payment Status']||'').trim()||'Unpaid';const d=String(c['District Payment Status']||'').trim()||'Unpaid';if(a==='Paid')ip++;else if(a!=='Pending Verification'&&numFromText(c['International Due Amount'])>=0)iu++;if(d==='Paid')dp++;else if(d!=='Pending Verification')du++;const x=(window.installationAdminMap||{})[String(c['Lion ID']||'')]||{};if(x.status==='Installation Completed')ic++;});
+    setText('udTotalClubs',total);setText('udIntlPaid',ip);setText('udIntlUnpaid',iu);setText('udDistrictPaid',dp);setText('udDistrictUnpaid',du);setText('udInstallCompleted',ic);setText('udInstallPending',Math.max(0,total-ic));
+    setText('udIntlPaidPct',pct(ip,total));setText('udIntlUnpaidPct',pct(iu,total));setText('udDistrictPaidPct',pct(dp,total));setText('udDistrictUnpaidPct',pct(du,total));setText('udInstallCompletedPct',pct(ic,total));setText('udInstallPendingPct',pct(Math.max(0,total-ic),total));
+    const admin=localStorage.getItem('duesAdminUser')||'Admin User';setText('udAdminName',admin);setText('udWelcomeName',admin);
+    const mode=document.getElementById('udChartMode')?.value||'intl'; let vals,labels4='Credit / Adjustment';
+    if(mode==='district'){vals=[numFromText(txt('sumDistrictTotalPayable')),numFromText(txt('sumDistrictTotalCollection')),numFromText(txt('sumDistrictTotalOutstanding')),numFromText(txt('sumNewMemberCollection'))];labels4='New Member Collection';}
+    else{vals=[numFromText(txt('sumIntlTotalPayable')),numFromText(txt('sumIntlCollection')),numFromText(txt('sumIntlOutstanding')),numFromText(txt('sumIntlCreditAmount'))];}
+    const max=Math.max(...vals,1); vals.forEach((v,i)=>{setText('udBarVal'+(i+1),money(v));setBar('udBar'+(i+1),v,max);}); setText('udBarLabel4',labels4);
+    recentDues();recentInstall();
+  };
+  function tick(){const e=document.getElementById('udDateTime');if(e)e.innerText='📅 '+new Date().toLocaleString();udRefreshDashboard();}
+  document.addEventListener('DOMContentLoaded',function(){tick();setInterval(tick,2500);});
+})();
 </script>
 
 </body>
