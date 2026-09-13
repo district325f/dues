@@ -344,6 +344,60 @@ input,select,button{font-size:16px!important;min-height:44px;}
 @media(max-width:1200px){.ud-kpis{grid-template-columns:repeat(4,1fr)}.ud-main-grid,.ud-recent-grid{grid-template-columns:1fr}.ud-brand{min-width:360px}.ud-welcome{grid-template-columns:1fr 1fr}.ud-welcome-main{grid-column:1/-1}}
 @media(max-width:800px){.ud-topbar{position:static;flex-wrap:wrap;padding:12px}.ud-brand{min-width:0;width:100%}.ud-brand img{width:52px;height:52px}.ud-brand-title{font-size:21px}.ud-brand-sub{font-size:13px}.ud-top-search{order:3;max-width:none;width:100%}.ud-profile{margin-left:auto}.admin-page-container{margin:8px!important;padding:10px!important}.ud-welcome{grid-template-columns:1fr}.ud-welcome-main{grid-column:auto}.ud-welcome h2{font-size:23px}.ud-kpis{grid-template-columns:repeat(2,1fr)}.ud-kpi{min-height:135px}.ud-main-grid,.ud-recent-grid{grid-template-columns:1fr}.ud-actions{grid-template-columns:1fr 1fr}.ud-chart{gap:10px;height:230px;padding-left:8px;padding-right:8px}.ud-bar-value{font-size:13px}.ud-bar-label{font-size:12px}.ud-card-title{font-size:20px;flex-wrap:wrap}.ud-footer{flex-direction:column;align-items:stretch}.ud-footer-brand{border-left:none;border-top:3px solid #f2b400}.report-controls{grid-template-columns:1fr!important}}
 @media(max-width:480px){html{font-size:15px}.ud-kpis{grid-template-columns:1fr}.ud-actions{grid-template-columns:1fr}.ud-kpi-label{font-size:17px}.ud-kpi-num{font-size:34px}.ud-profile div:not(.ud-avatar){display:none}.ud-chart{height:210px}.ud-bar{width:82%}.ud-bar-label{white-space:normal}.ud-top-search input{font-size:15px!important}}
+
+/* ===== Compact universal correction - UI only ===== */
+/* Keep the approved no-sidebar dashboard, but avoid oversized login/header controls. */
+.ud-topbar{padding:10px 18px!important;gap:14px!important;}
+.ud-brand{min-width:390px!important;gap:10px!important;}
+.ud-brand img{width:54px!important;height:54px!important;}
+.ud-brand-title{font-size:23px!important;}
+.ud-brand-sub{font-size:14px!important;margin-top:2px!important;}
+.ud-top-search{max-width:420px!important;}
+.ud-top-search input{height:42px!important;font-size:15px!important;padding:9px 12px!important;}
+.ud-top-search button{height:42px!important;width:50px!important;font-size:18px!important;}
+.ud-avatar{width:42px!important;height:42px!important;font-size:22px!important;}
+.ud-profile strong{font-size:15px!important;}
+.ud-profile small{font-size:12px!important;}
+.ud-logout{min-height:42px!important;padding:8px 13px!important;font-size:15px!important;}
+
+/* Normal universal control sizing for existing working forms/reports. */
+input,select,button{font-size:15px!important;min-height:40px!important;padding:9px 11px!important;}
+.payment-requests-panel h3,.add-club-panel h3,.edit-club-panel h3,.admin-report-panel h3,.audit-log-panel h3{font-size:20px!important;}
+label,.request-note,.edit-club-help,.installation-radio-label{font-size:14px!important;}
+.report-table th,.report-table td,.requests-table th,.requests-table td,.audit-table th,.audit-table td{font-size:13.5px!important;}
+.report-table td,.requests-table td,.audit-table td{padding:9px 8px!important;}
+
+/* Compact, centered login state instead of a full-width oversized form. */
+body:has(#loginBox:not([style*="display: none"])) .admin-page-container{
+  max-width:640px!important;
+  margin:34px auto!important;
+  padding:16px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#loginBox{
+  max-width:560px!important;
+  margin:0 auto!important;
+  padding:20px!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  border:1px solid #dce8f5!important;
+  box-shadow:0 5px 18px rgba(18,72,120,.08)!important;
+}
+#loginBox h3{font-size:20px!important;margin:0 0 14px!important;}
+#loginBox input{height:42px!important;margin:5px 0!important;font-size:15px!important;}
+#loginBox button{height:42px!important;margin:7px 0 0!important;font-size:15px!important;}
+#loginStatusMsg{font-size:13px!important;}
+
+@media(max-width:800px){
+  .ud-topbar{padding:9px 10px!important;}
+  .ud-brand{min-width:0!important;}
+  .ud-brand img{width:48px!important;height:48px!important;}
+  .ud-brand-title{font-size:20px!important;}
+  .ud-brand-sub{font-size:12.5px!important;}
+  body:has(#loginBox:not([style*="display: none"])) .admin-page-container{margin:16px 8px!important;padding:8px!important;}
+  #loginBox{padding:16px!important;}
+}
 </style>
 
 </head>
