@@ -204,6 +204,34 @@ body { margin:0; }
 .auto-refresh-note { font-size:12px; color:#4f5d75; background:#eef6ff; border:1px solid #cfe8ff; border-radius:20px; padding:5px 10px; }
 .close-edit-btn { background:#95a5a6 !important; }
 @media(max-width:700px){ .admin-page-container { margin:8px; padding:14px; } .admin-page-header h2 { font-size:18px; } }
+
+/* Edit Club section visual separation - UI only */
+.edit-club-panel {
+  margin:20px 0;
+  padding:16px;
+  background:#f5f9ff;
+  border:2px solid #3498db;
+  border-radius:10px;
+}
+.edit-club-panel h3 {
+  margin:0 0 12px 0;
+  color:#003366;
+  font-size:20px;
+}
+.edit-club-help {
+  margin-top:10px;
+  padding:10px 12px;
+  background:#eaf4ff;
+  border:1px solid #cfe6ff;
+  border-radius:7px;
+  color:#315b7d;
+  font-size:13px;
+  font-weight:600;
+}
+@media(max-width:700px){
+  .edit-club-panel { padding:13px; margin:14px 0; }
+  .edit-club-panel h3 { font-size:18px; }
+}
 </style>
 
 
@@ -327,10 +355,13 @@ body { margin:0; }
     </div>
 
 
-    <label><b>क्लब छान्नुहोस् (Select Club to Edit):</b></label>
-    <select id="adminClubSelect" onchange="loadClubToAdminForm()"><option value="">-- Select a Club --</option></select>
+    <div class="edit-club-panel" id="editClubPanel">
+      <h3>✏️ Edit Club Details</h3>
+      <label><b>क्लब छान्नुहोस् (Select Club to Edit):</b></label>
+      <select id="adminClubSelect" onchange="loadClubToAdminForm()"><option value="">-- Select a Club --</option></select>
+      <div class="edit-club-help">ℹ️ क्लब छान्दा तल Club Details देखिन्छ। आवश्यक परिवर्तन गरी Update गर्न सक्नुहुन्छ।</div>
 
-    <div id="adminForm" style="display:none; margin-top:15px; border-top:1px solid #e1e8ed; padding-top:15px;">
+      <div id="adminForm" style="display:none; margin-top:15px; border-top:1px solid #e1e8ed; padding-top:15px;">
       <p><b>Lion ID:</b> <span id="admLionId"></span></p>
       <label>Club Name:</label><input type="text" id="admClubName">
       <label>Active Member Count:</label><input type="number" id="admActiveMembers">
@@ -377,6 +408,7 @@ body { margin:0; }
         <button class="primary-btn" style="background:#e67e22; flex:1;" onclick="sendAdminDuesReminder()">🔔 Send Reminder</button>
         <button class="primary-btn close-edit-btn" style="flex:1;" onclick="closeAdminEditForm()">Close Edit</button>
       </div>
+    </div>
     </div>
 
     <div class="admin-report-panel" id="adminReportPanel">
