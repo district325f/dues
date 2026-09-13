@@ -136,6 +136,60 @@ tr:hover { background:#edf2f7; cursor:pointer; }
 .credit-adjustment-btn:hover{ background:#71368a; }
 .credit-adjustment-btn:disabled{ opacity:.7; cursor:not-allowed; }
 
+
+/* ===== Club Installation - additive admin-only styles ===== */
+.installation-status-box {
+  margin: 10px 0;
+  padding: 12px;
+  background: #f8fbff;
+  border: 1px solid #dce9f7;
+  border-radius: 8px;
+}
+.installation-status-title {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #003366;
+}
+.installation-status-options {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.installation-radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+}
+.installation-radio-label input {
+  width: auto;
+  margin: 0;
+  transform: scale(1.15);
+}
+.installation-date-box {
+  display: none;
+  margin-top: 10px;
+}
+.required-star { color: #e74c3c; font-weight: 800; }
+.installation-summary-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid #003366;
+  border-radius: 8px;
+  background: #f8fbff;
+  color: #003366;
+  font-weight: 800;
+  text-align: right;
+}
+.installation-report-table th:first-child,
+.installation-report-table td:first-child { width: 45px; text-align: center; }
+@media(max-width:700px) {
+  .installation-status-options { flex-direction: column; gap: 10px; }
+}
+
 </style>
 <style>
 body { margin:0; }
@@ -291,6 +345,35 @@ body { margin:0; }
       </div>
     </div>
 
+
+    <div class="admin-report-panel" id="installationReportPanel">
+      <h3>🏛️ Club Installation Report</h3>
+      <div class="report-controls">
+        <div>
+          <label><b>Installation Status:</b></label>
+          <select id="installationReportStatus" onchange="handleInstallationReportStatusChange()">
+            <option value="Installation Completed">Installation Completed</option>
+            <option value="Installation Not Completed">Installation Not Completed</option>
+            <option value="All">All</option>
+          </select>
+        </div>
+        <div><label><b>From Date:</b></label><input type="date" id="installationReportFromDate"></div>
+        <div><label><b>To Date:</b></label><input type="date" id="installationReportToDate"></div>
+        <div><button class="primary-btn" id="viewInstallationReportBtn" onclick="renderInstallationReport()">View Report</button></div>
+        <div><button class="download-report-btn excel" id="installationExcelBtn" onclick="downloadInstallationReportExcel()">⬇ Excel</button></div>
+        <div><button class="download-report-btn pdf" id="installationPdfBtn" onclick="downloadInstallationReportPDF()">⬇ PDF</button></div>
+      </div>
+      <div class="report-table-wrap">
+        <table class="report-table installation-report-table">
+          <thead>
+            <tr><th>S.N.</th><th>Club</th><th>Lion ID</th><th>Installation Status</th><th>Installation Date</th></tr>
+          </thead>
+          <tbody id="installationReportBody"><tr><td colspan="5" class="request-empty">Report हेर्न माथिको option छानी View Report थिच्नुहोस् ।</td></tr></tbody>
+        </table>
+      </div>
+      <div id="installationReportSummary" class="installation-summary-box" style="display:none;"></div>
+    </div>
+
     <label><b>क्लब छान्नुहोस् (Select Club to Edit):</b></label>
     <select id="adminClubSelect" onchange="loadClubToAdminForm()"><option value="">-- Select a Club --</option></select>
 
@@ -313,6 +396,25 @@ body { margin:0; }
       <input type="text" id="admContactNumber" placeholder="सम्पर्क नम्बर लेख्नुहोस्">
       <label>International Payment Status:</label><select id="admIntlStatus" onchange="showUnsavedStatusNote()"><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="Paid">Paid</option></select>
       <label>District Payment Status:</label><select id="admDistrictStatus" onchange="showUnsavedStatusNote()"><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="Paid">Paid</option></select>
+
+
+      <div class="installation-status-box">
+        <span class="installation-status-title">Club Installation Status <span class="required-star">*</span></span>
+        <div class="installation-status-options">
+          <label class="installation-radio-label">
+            <input type="radio" name="admInstallationStatus" id="admInstallationCompleted" value="Installation Completed" onchange="handleInstallationStatusChange()">
+            Club Installation Completed
+          </label>
+          <label class="installation-radio-label">
+            <input type="radio" name="admInstallationStatus" id="admInstallationNotCompleted" value="Installation Not Completed" onchange="handleInstallationStatusChange()">
+            Club Installation Not Completed
+          </label>
+        </div>
+        <div id="admInstallationDateBox" class="installation-date-box">
+          <label><b>Installation Date <span class="required-star">*</span>:</b></label>
+          <input type="date" id="admInstallationDate">
+        </div>
+      </div>
 
       <div id="unsavedStatusNote" style="display:none;background:#fff8e6;border:1px solid #f1c40f;border-radius:6px;padding:9px;margin:8px 0;font-size:13px;color:#5d4a00;">
         Status छानिएको छ। Google Sheet मा save गर्न <b>Save & Update Sheet</b> button थिच्नुहोस्।
@@ -348,6 +450,9 @@ let adminLoggedIn = localStorage.getItem("duesAdminLoggedIn") === "yes";
 let adminAutoRefreshTimer = null;
 let auditLogs = [];
 let currentReportRows = [];
+let installationAdminMap = {};
+let installationDataLoaded = false;
+let currentInstallationReportRows = [];
 
 function setBtnLoading(btnId, loadingText, normalText, isLoading) {
   const btn = document.getElementById(btnId);
@@ -380,6 +485,7 @@ async function loadData(options = {}) {
     }
     cleanValidClubsOnly();
     sortGlobalClubsAlphabetically();
+    if (adminLoggedIn && !installationDataLoaded) await loadInstallationAdminData(true);
     populateAdminDropdown(selected);
     filterAdminClubSearch();
     renderPaymentRequests();
@@ -510,7 +616,10 @@ function isAdminSelectBusy() {
     "admSubmittedBy",
     "admContactNumber",
     "admIntlStatus",
-    "admDistrictStatus"
+    "admDistrictStatus",
+    "admInstallationCompleted",
+    "admInstallationNotCompleted",
+    "admInstallationDate"
   ];
 
   return busyIds.includes(active.id) || isAdminEditing();
@@ -829,6 +938,263 @@ async function rejectPaymentRequest(lionId) {
 }
 
 
+
+// ===== Additive date helpers for Dues/Installation reports =====
+function dateValueToKey(value) {
+  if (!value) return "";
+  const raw = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function isDateWithinRange(value, fromDate, toDate) {
+  if (!fromDate && !toDate) return true;
+  const key = dateValueToKey(value);
+  if (!key) return false;
+  if (fromDate && key < fromDate) return false;
+  if (toDate && key > toDate) return false;
+  return true;
+}
+
+function getSelectedInstallationStatus() {
+  const checked = document.querySelector('input[name="admInstallationStatus"]:checked');
+  return checked ? checked.value : "";
+}
+
+function setInstallationStatusSelection(status, installationDate) {
+  const completed = document.getElementById("admInstallationCompleted");
+  const notCompleted = document.getElementById("admInstallationNotCompleted");
+  const dateInput = document.getElementById("admInstallationDate");
+  if (completed) completed.checked = status === "Installation Completed";
+  if (notCompleted) notCompleted.checked = status === "Installation Not Completed";
+  if (dateInput) dateInput.value = status === "Installation Completed" ? dateValueToKey(installationDate) : "";
+  handleInstallationStatusChange(false);
+}
+
+function handleInstallationStatusChange(showNote = true) {
+  const status = getSelectedInstallationStatus();
+  const dateBox = document.getElementById("admInstallationDateBox");
+  const dateInput = document.getElementById("admInstallationDate");
+  if (dateBox) dateBox.style.display = status === "Installation Completed" ? "block" : "none";
+  if (status === "Installation Not Completed" && dateInput) dateInput.value = "";
+  if (showNote) showUnsavedStatusNote();
+}
+
+async function loadInstallationAdminData(silent = false) {
+  try {
+    const result = await postData({
+      actionType: "get_installation_data",
+      adminUser: getAdminUserName()
+    });
+    if (!result || result.status !== "success") {
+      if (!silent) alert((result && result.message) || "Installation data load failed भयो।");
+      return false;
+    }
+    installationAdminMap = {};
+    (result.rows || []).forEach(row => {
+      const id = String(row.lionId || "").trim();
+      if (!id) return;
+      installationAdminMap[id] = {
+        status: String(row.installationStatus || "").trim(),
+        date: dateValueToKey(row.installationDate || "")
+      };
+    });
+    installationDataLoaded = true;
+    return true;
+  } catch (err) {
+    if (!silent) alert("Installation data load error: " + err.toString());
+    return false;
+  }
+}
+
+function buildInstallationReportRows() {
+  const statusFilter = document.getElementById("installationReportStatus") ? document.getElementById("installationReportStatus").value : "All";
+  const fromDate = document.getElementById("installationReportFromDate") ? document.getElementById("installationReportFromDate").value : "";
+  const toDate = document.getElementById("installationReportToDate") ? document.getElementById("installationReportToDate").value : "";
+  const rows = [];
+
+  globalClubs.forEach(club => {
+    const clubName = String(club["Club Name"] || "").trim();
+    const lionId = String(club["Lion ID"] || "").trim();
+    if (!clubName || !lionId) return;
+
+    const install = installationAdminMap[lionId] || {};
+    const status = String(install.status || "").trim();
+    const installationDate = dateValueToKey(install.date || "");
+
+    // Installation report only includes clubs for which Installation Status has been saved.
+    if (!status) return;
+    if (statusFilter !== "All" && status !== statusFilter) return;
+    if (!isDateWithinRange(installationDate, fromDate, toDate)) return;
+
+    rows.push({ clubName, lionId, installationStatus: status, installationDate });
+  });
+
+  return sortReportRowsAlphabetically(rows);
+}
+
+function renderInstallationReportSummary(rows) {
+  const box = document.getElementById("installationReportSummary");
+  if (!box) return;
+  if (!rows.length) { box.style.display = "none"; return; }
+  const completed = rows.filter(r => r.installationStatus === "Installation Completed").length;
+  const notCompleted = rows.filter(r => r.installationStatus === "Installation Not Completed").length;
+  box.innerHTML = `Total Records: ${rows.length} &nbsp; | &nbsp; Completed: ${completed} &nbsp; | &nbsp; Not Completed: ${notCompleted}`;
+  box.style.display = "block";
+}
+
+function handleInstallationReportStatusChange() {
+  const status = document.getElementById("installationReportStatus")?.value || "All";
+  const fromEl = document.getElementById("installationReportFromDate");
+  const toEl = document.getElementById("installationReportToDate");
+  const disableDates = status === "Installation Not Completed";
+  if (fromEl) { fromEl.disabled = disableDates; if (disableDates) fromEl.value = ""; }
+  if (toEl) { toEl.disabled = disableDates; if (disableDates) toEl.value = ""; }
+}
+
+async function renderInstallationReport() {
+  const btn = document.getElementById("viewInstallationReportBtn");
+  if (btn) { btn.disabled = true; btn.innerText = "⏳ Loading..."; }
+  try {
+    await loadInstallationAdminData(true);
+    currentInstallationReportRows = buildInstallationReportRows();
+    const tbody = document.getElementById("installationReportBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    if (!currentInstallationReportRows.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="request-empty">यो filter अनुसार कुनै Installation data भेटिएन ।</td></tr>`;
+      renderInstallationReportSummary([]);
+      return;
+    }
+    currentInstallationReportRows.forEach((item, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${idx + 1}</td><td><b>${item.clubName}</b></td><td>${item.lionId}</td><td>${item.installationStatus}</td><td>${item.installationDate || "-"}</td>`;
+      tbody.appendChild(tr);
+    });
+    renderInstallationReportSummary(currentInstallationReportRows);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerText = "View Report"; }
+  }
+}
+
+function getInstallationReportFileBaseName() {
+  const status = document.getElementById("installationReportStatus")?.value || "All";
+  return `Club_Installation_Report_${status.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}`;
+}
+
+async function ensureInstallationReportRowsReady() {
+  await loadInstallationAdminData(true);
+  currentInstallationReportRows = buildInstallationReportRows();
+  if (!currentInstallationReportRows.length) {
+    alert("यो filter अनुसार download गर्ने Installation data छैन। पहिले filter मिलाएर View Report थिच्नुहोस्।");
+    return false;
+  }
+  return true;
+}
+
+async function downloadInstallationReportExcel() {
+  if (!(await ensureInstallationReportRowsReady())) return;
+  const btn = document.getElementById("installationExcelBtn");
+  if (btn) { btn.disabled = true; btn.innerText = "⏳ Excel..."; }
+  try {
+    const headers = ["S.N.", "Club Name", "Lion ID", "Installation Status", "Installation Date"];
+    let csv = "\ufeff" + headers.map(h => `"${h}"`).join(",") + "\n";
+    currentInstallationReportRows.forEach((r, i) => {
+      const row = [i + 1, r.clubName, r.lionId, r.installationStatus, r.installationDate || ""];
+      csv += row.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",") + "\n";
+    });
+    const completed = currentInstallationReportRows.filter(r => r.installationStatus === "Installation Completed").length;
+    const notCompleted = currentInstallationReportRows.filter(r => r.installationStatus === "Installation Not Completed").length;
+    csv += "\n";
+    csv += `"Total Records","${currentInstallationReportRows.length}","Completed","${completed}","Not Completed: ${notCompleted}"\n`;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = getInstallationReportFileBaseName() + ".csv";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+  } catch (err) {
+    alert("Installation Excel download error: " + err.toString());
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerText = "⬇ Excel"; }
+  }
+}
+
+async function downloadInstallationReportPDF() {
+  if (!(await ensureInstallationReportRowsReady())) return;
+  const btn = document.getElementById("installationPdfBtn");
+  if (btn) { btn.disabled = true; btn.innerText = "⏳ PDF..."; }
+  try {
+    const jsPDFClass = window.jspdf && window.jspdf.jsPDF ? window.jspdf.jsPDF : null;
+    if (!jsPDFClass) { alert("PDF library load हुन सकेन। Internet connection सहित फेरि try गर्नुहोस्।"); return; }
+
+    const statusFilter = document.getElementById("installationReportStatus")?.value || "All";
+    const fromDate = document.getElementById("installationReportFromDate")?.value || "";
+    const toDate = document.getElementById("installationReportToDate")?.value || "";
+    const doc = new jsPDFClass("l", "pt", "a4");
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const logoData = await loadImageAsDataURL("logo.png");
+    if (logoData) { try { doc.addImage(logoData, "PNG", 40, 22, 55, 55); } catch (e) {} }
+
+    doc.setFontSize(18); doc.setTextColor(0, 51, 102); doc.text("Lions International", pageWidth / 2, 32, { align: "center" });
+    doc.setFontSize(14); doc.text("District 325 F", pageWidth / 2, 52, { align: "center" });
+    doc.setFontSize(16); doc.setTextColor(212, 175, 55); doc.text("Club Installation Report", pageWidth / 2, 74, { align: "center" });
+    doc.setDrawColor(0, 51, 102); doc.setLineWidth(1); doc.line(40, 88, pageWidth - 40, 88);
+    doc.setFontSize(10); doc.setTextColor(44, 62, 80);
+    doc.text(`Status: ${statusFilter}`, 40, 108);
+    doc.text(`Date: ${fromDate || "All"} to ${toDate || "All"}`, 250, 108);
+    doc.text(`Total Records: ${currentInstallationReportRows.length}`, 470, 108);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 610, 108);
+
+    if (typeof doc.autoTable !== "function") { alert("PDF table plugin load हुन सकेन। Internet connection सहित फेरि try गर्नुहोस्।"); return; }
+    const body = currentInstallationReportRows.map((r, i) => [i + 1, r.clubName, r.lionId, r.installationStatus, r.installationDate || "-"]);
+    doc.autoTable({
+      startY: 125,
+      head: [["S.N.", "Club Name", "Lion ID", "Installation Status", "Installation Date"]],
+      body,
+      styles: { fontSize: 9, cellPadding: 5 },
+      headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] },
+      alternateRowStyles: { fillColor: [248, 249, 250] },
+      columnStyles: {
+        0: { cellWidth: 45, halign: "center" },
+        1: { cellWidth: 260 },
+        2: { cellWidth: 100 },
+        3: { cellWidth: 180 },
+        4: { cellWidth: 120, halign: "center" }
+      },
+      didDrawPage: function() {
+        const pageHeight = doc.internal.pageSize.getHeight();
+        doc.setFontSize(8); doc.setTextColor(120);
+        doc.text("Designed by: Nirajan Aryal | Mobile: 9851113811", pageWidth / 2, pageHeight - 18, { align: "center" });
+      }
+    });
+
+    const completed = currentInstallationReportRows.filter(r => r.installationStatus === "Installation Completed").length;
+    const notCompleted = currentInstallationReportRows.filter(r => r.installationStatus === "Installation Not Completed").length;
+    let y = (doc.lastAutoTable && doc.lastAutoTable.finalY ? doc.lastAutoTable.finalY : 125) + 16;
+    if (y > doc.internal.pageSize.getHeight() - 80) { doc.addPage(); y = 40; }
+    const boxX = pageWidth - 330, boxW = 290, boxH = 70;
+    doc.setDrawColor(0, 51, 102); doc.setFillColor(248, 251, 255); doc.roundedRect(boxX, y, boxW, boxH, 6, 6, "FD");
+    doc.setFontSize(10); doc.setTextColor(0, 51, 102);
+    doc.text(`Total Records: ${currentInstallationReportRows.length}`, boxX + boxW - 12, y + 20, { align: "right" });
+    doc.text(`Completed: ${completed}`, boxX + boxW - 12, y + 36, { align: "right" });
+    doc.text(`Not Completed: ${notCompleted}`, boxX + boxW - 12, y + 52, { align: "right" });
+    doc.save(getInstallationReportFileBaseName() + ".pdf");
+  } catch (err) {
+    alert("Installation PDF download error: " + err.toString());
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerText = "⬇ PDF"; }
+  }
+}
+
 function normalizeClubSortName(value) {
   return String(value || "")
     .toUpperCase()
@@ -851,39 +1217,17 @@ function sortReportRowsAlphabetically(rows) {
   });
 }
 
-function getSelectedReportDateRange() {
-  const fromEl = document.getElementById("reportFromDate");
-  const toEl = document.getElementById("reportToDate");
-  const fromValue = fromEl ? String(fromEl.value || "").trim() : "";
-  const toValue = toEl ? String(toEl.value || "").trim() : "";
-
-  const fromDate = fromValue ? new Date(fromValue + "T00:00:00") : null;
-  const toDate = toValue ? new Date(toValue + "T23:59:59.999") : null;
-
-  return { fromValue, toValue, fromDate, toDate };
-}
-
-function isPaymentDateWithinReportRange(value, range) {
-  if (!range.fromDate && !range.toDate) return true;
-  if (!value) return false;
-
-  const paymentDate = new Date(value);
-  if (isNaN(paymentDate.getTime())) return false;
-  if (range.fromDate && paymentDate < range.fromDate) return false;
-  if (range.toDate && paymentDate > range.toDate) return false;
-  return true;
-}
-
 function buildFilteredReportRows() {
   const duesType = document.getElementById("reportDuesType") ? document.getElementById("reportDuesType").value : "Both";
   const statusFilter = document.getElementById("reportStatus") ? document.getElementById("reportStatus").value : "All";
-  const dateRange = getSelectedReportDateRange();
+  const fromDate = document.getElementById("reportFromDate") ? document.getElementById("reportFromDate").value : "";
+  const toDate = document.getElementById("reportToDate") ? document.getElementById("reportToDate").value : "";
   const rows = [];
   globalClubs.forEach(club => {
     const clubName = String(club["Club Name"] || "").trim();
     const lionId = String(club["Lion ID"] || "").trim();
     if (!clubName || !lionId) return;
-    if (!isPaymentDateWithinReportRange(club["Payment Date"], dateRange)) return;
+    if (!isDateWithinRange(club["Payment Date"], fromDate, toDate)) return;
 
     if (duesType === "International" || duesType === "Both") {
       const st = getStatusValue(club["Payment Status"]);
@@ -1082,6 +1426,9 @@ function loadClubToAdminForm() {
     document.getElementById("admIntlStatus").value = oldIntlStatus;
     document.getElementById("admDistrictStatus").value = oldDistrictStatus;
 
+    const install = installationAdminMap[String(club["Lion ID"] || "").trim()] || {};
+    setInstallationStatusSelection(install.status || "", install.date || "");
+
     document.getElementById("adminForm").style.display = "block";
     const unsavedNote = document.getElementById("unsavedStatusNote");
     if (unsavedNote) unsavedNote.style.display = "none";
@@ -1091,6 +1438,7 @@ function loadClubToAdminForm() {
 function closeAdminEditForm() {
   document.getElementById("adminForm").style.display = "none";
   document.getElementById("adminClubSelect").value = "";
+  setInstallationStatusSelection("", "");
   if (adminLoggedIn) startAdminAutoRefresh();
 }
 
@@ -1107,6 +1455,19 @@ async function submitAdminUpdate() {
 
   const newIntlStatus = document.getElementById("admIntlStatus").value;
   const newDistrictStatus = document.getElementById("admDistrictStatus").value;
+  const installationStatus = getSelectedInstallationStatus();
+  const installationDate = document.getElementById("admInstallationDate") ? document.getElementById("admInstallationDate").value : "";
+
+  if (!installationStatus) {
+    alert("Club Installation Status अनिवार्य छ। कृपया Installation Completed वा Installation Not Completed छान्नुहोस्।");
+    return;
+  }
+  if (installationStatus === "Installation Completed" && !installationDate) {
+    alert("Club Installation Completed चयन गरिएको छ। कृपया Installation Date राख्नुहोस्।");
+    const dateInput = document.getElementById("admInstallationDate");
+    if (dateInput) dateInput.focus();
+    return;
+  }
 
   const shouldOpenWhatsApp = targetPhone && (newIntlStatus !== oldIntlStatus || newDistrictStatus !== oldDistrictStatus);
 
@@ -1125,7 +1486,9 @@ async function submitAdminUpdate() {
       submittedBy: document.getElementById("admSubmittedBy") ? document.getElementById("admSubmittedBy").value.trim() : "",
       contactNumber: document.getElementById("admContactNumber") ? document.getElementById("admContactNumber").value.trim() : "",
       intlStatus: newIntlStatus,
-      districtStatus: newDistrictStatus
+      districtStatus: newDistrictStatus,
+      installationStatus: installationStatus,
+      installationDate: installationStatus === "Installation Completed" ? installationDate : ""
     };
 
     const result = await postData(payload);
@@ -1134,6 +1497,11 @@ async function submitAdminUpdate() {
       alert(result.message);
       const unsavedNote = document.getElementById("unsavedStatusNote");
       if (unsavedNote) unsavedNote.style.display = "none";
+      installationAdminMap[String(id)] = {
+        status: installationStatus,
+        date: installationStatus === "Installation Completed" ? installationDate : ""
+      };
+      installationDataLoaded = true;
       await loadData({ silent: true });
 
       if (shouldOpenWhatsApp) {
