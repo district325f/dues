@@ -233,6 +233,19 @@ tr:hover { background:#edf2f7; cursor:pointer; }
   .report-collapse-btn { min-width:95px; padding:7px 10px; }
 }
 
+/* ===== Report status colors - view only ===== */
+.report-status-badge {
+  display:inline-block;
+  min-width:74px;
+  padding:5px 10px;
+  border-radius:6px;
+  font-weight:800;
+  text-align:center;
+  line-height:1.15;
+}
+.report-status-paid { background:#dff6e8; color:#148447; border:1px solid #a9dfbf; }
+.report-status-unpaid { background:#fde5e3; color:#c0392b; border:1px solid #f5b7b1; }
+
 </style>
 <style>
 body { margin:0; }
@@ -539,7 +552,6 @@ body:has(#loginBox:not([style*="display: none"])) .admin-page-container{
       <h3 style="margin-top:18px;">🌐 International Dues Summary</h3>
       <div class="summary-grid">
         <div class="summary-card"><div class="label">Intl Paid</div><div class="num" id="sumIntlPaid">0</div></div>
-        <div class="summary-card"><div class="label">Intl Pending</div><div class="num" id="sumIntlPending">0</div></div>
         <div class="summary-card"><div class="label">Intl Unpaid</div><div class="num" id="sumIntlUnpaid">0</div></div>
         <div class="summary-card"><div class="label">Intl Total Payable</div><div class="num" id="sumIntlTotalPayable">रु. 0</div></div>
         <div class="summary-card"><div class="label">Intl Collection</div><div class="num" id="sumIntlCollection">रु. 0</div></div>
@@ -553,7 +565,6 @@ body:has(#loginBox:not([style*="display: none"])) .admin-page-container{
       <h3 style="margin-top:18px;">🏛️ District Dues Summary</h3>
       <div class="summary-grid">
         <div class="summary-card"><div class="label">District Paid</div><div class="num" id="sumDistrictPaid">0</div></div>
-        <div class="summary-card"><div class="label">District Pending</div><div class="num" id="sumDistrictPending">0</div></div>
         <div class="summary-card"><div class="label">District Unpaid</div><div class="num" id="sumDistrictUnpaid">0</div></div>
         <div class="summary-card"><div class="label">District Total Payable</div><div class="num" id="sumDistrictTotalPayable">रु. 0</div></div>
         <div class="summary-card"><div class="label">District Base Collection</div><div class="num" id="sumDistrictCollection">रु. 0</div></div>
@@ -700,7 +711,7 @@ body:has(#loginBox:not([style*="display: none"])) .admin-page-container{
       <div class="report-content" id="duesReportContent">
       <div class="report-controls">
         <div><label><b>Dues Type:</b></label><select id="reportDuesType"><option value="International">International</option><option value="District">District</option><option value="Both">Both</option></select></div>
-        <div><label><b>Status:</b></label><select id="reportStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Pending Verification">Pending Verification</option><option value="All">All</option></select></div>
+        <div><label><b>Status:</b></label><select id="reportStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="All">All</option></select></div>
         <div><label><b>From Date:</b></label><input type="date" id="reportFromDate"></div>
         <div><label><b>To Date:</b></label><input type="date" id="reportToDate"></div>
         <div><button class="primary-btn" id="viewReportBtn" onclick="renderAdminReport()">View Report</button></div>
@@ -751,7 +762,7 @@ body:has(#loginBox:not([style*="display: none"])) .admin-page-container{
       <div class="report-table-wrap compact-report-scroll">
         <table class="report-table installation-report-table">
           <thead>
-            <tr><th>S.N.</th><th>Club Name (Club No.)</th><th>DG Club Visit</th><th>Intl Paid Status</th><th>District Paid Status</th><th>Installation Status</th><th>Installation Date</th></tr>
+            <tr><th>S.N.</th><th>Club Name (Club No.)</th><th>DG Club Visit</th><th>Intl Dues Status</th><th>District Dues Status</th><th>Installation Status</th><th>Installation Date</th></tr>
           </thead>
           <tbody id="installationReportBody"><tr><td colspan="7" class="request-empty">Report हेर्न माथिको option छानी View Report थिच्नुहोस् ।</td></tr></tbody>
         </table>
@@ -785,6 +796,8 @@ let adminLoggedIn = localStorage.getItem("duesAdminLoggedIn") === "yes";
 let adminAutoRefreshTimer = null;
 let auditLogs = [];
 let currentReportRows = [];
+let loadDataInFlight = false;
+let lastAuditRefreshAt = 0;
 
 // UI-only helper: keeps long report sections compact without changing report data.
 function toggleReportSection(contentId, buttonId) {
@@ -819,6 +832,8 @@ async function postData(payload) {
 async function loadData(options = {}) {
   const silent = options.silent === true;
   if (silent && isAdminSelectBusy()) return;
+  if (loadDataInFlight) return;
+  loadDataInFlight = true;
   try {
     const selected = document.getElementById("adminClubSelect") ? document.getElementById("adminClubSelect").value : "";
     const res = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
@@ -837,9 +852,19 @@ async function loadData(options = {}) {
     renderPaymentRequests();
     renderAdminReport();
     renderDashboardSummary();
-    if (adminLoggedIn) loadAuditLogs(true);
+    if (typeof udRefreshDashboard === "function") udRefreshDashboard();
+
+    // Audit log is comparatively heavy. Keep the 5-second main refresh,
+    // but refresh audit data at most once every 30 seconds.
+    const now = Date.now();
+    if (adminLoggedIn && (now - lastAuditRefreshAt >= 30000)) {
+      lastAuditRefreshAt = now;
+      loadAuditLogs(true);
+    }
   } catch (err) {
     if (!silent) alert("Data load error: " + err.toString());
+  } finally {
+    loadDataInFlight = false;
   }
 }
 
@@ -1342,10 +1367,8 @@ function getInstallationReportSummaryData(rows) {
     dgVisited: 0,
     dgNotVisited: 0,
     intlPaid: 0,
-    intlPending: 0,
     intlUnpaid: 0,
     districtPaid: 0,
-    districtPending: 0,
     districtUnpaid: 0,
     installationCompleted: 0,
     installationNotCompleted: 0,
@@ -1363,11 +1386,9 @@ function getInstallationReportSummaryData(rows) {
     else summary.dgNotVisited++;
 
     if (r.intlStatus === "Paid") summary.intlPaid++;
-    else if (r.intlStatus === "Pending Verification") summary.intlPending++;
     else summary.intlUnpaid++;
 
     if (r.districtStatus === "Paid") summary.districtPaid++;
-    else if (r.districtStatus === "Pending Verification") summary.districtPending++;
     else summary.districtUnpaid++;
 
     if (r.installationStatus === "Installation Completed") summary.installationCompleted++;
@@ -1411,8 +1432,13 @@ function handleDGVisitStatusChange(showNote = true) {
 
 function normalizeReportPaymentStatus(value) {
   const status = String(value || "").trim();
-  if (status === "Paid" || status === "Pending Verification" || status === "Unpaid") return status;
-  return "Unpaid";
+  return status === "Paid" ? "Paid" : "Unpaid";
+}
+
+function reportStatusBadge(status) {
+  const normalized = String(status || "").trim() === "Paid" ? "Paid" : "Unpaid";
+  const cls = normalized === "Paid" ? "report-status-paid" : "report-status-unpaid";
+  return `<span class="report-status-badge ${cls}">${normalized}</span>`;
 }
 
 
@@ -1526,10 +1552,8 @@ function renderInstallationReportSummary(rows) {
       <div><b>DG Visited:</b> ${s.dgVisited}</div>
       <div><b>DG Not Visited:</b> ${s.dgNotVisited}</div>
       <div><b>Intl Paid:</b> ${s.intlPaid}</div>
-      <div><b>Intl Pending:</b> ${s.intlPending}</div>
       <div><b>Intl Unpaid:</b> ${s.intlUnpaid}</div>
       <div><b>District Paid:</b> ${s.districtPaid}</div>
-      <div><b>District Pending:</b> ${s.districtPending}</div>
       <div><b>District Unpaid:</b> ${s.districtUnpaid}</div>
       <div><b>Installation Completed:</b> ${s.installationCompleted}</div>
       <div><b>Installation Not Completed:</b> ${s.installationNotCompleted}</div>
@@ -1574,7 +1598,7 @@ async function renderInstallationReport() {
     currentInstallationReportRows.forEach((item, idx) => {
       const tr = document.createElement("tr");
       const dgText = item.dgVisitStatus === "Visited" ? `Visited${item.dgVisitDate ? " (" + item.dgVisitDate + ")" : ""}` : "Not Visited";
-      tr.innerHTML = `<td>${idx + 1}</td><td><b>${item.clubDisplay}</b></td><td>${dgText}</td><td>${item.intlStatus}</td><td>${item.districtStatus}</td><td>${item.installationStatus}</td><td>${item.installationDate || "-"}</td>`;
+      tr.innerHTML = `<td>${idx + 1}</td><td><b>${item.clubDisplay}</b></td><td>${dgText}</td><td>${reportStatusBadge(item.intlStatus)}</td><td>${reportStatusBadge(item.districtStatus)}</td><td>${item.installationStatus}</td><td>${item.installationDate || "-"}</td>`;
       tbody.appendChild(tr);
     });
     renderInstallationReportSummary(currentInstallationReportRows);
@@ -1604,7 +1628,7 @@ async function downloadInstallationReportExcel() {
   const btn = document.getElementById("installationExcelBtn");
   if (btn) { btn.disabled = true; btn.innerText = "⏳ Excel..."; }
   try {
-    const headers = ["S.N.", "Club Name (Club No.)", "DG Club Visit", "Intl Paid Status", "District Paid Status", "Installation Status", "Installation Date"];
+    const headers = ["S.N.", "Club Name (Club No.)", "DG Club Visit", "Intl Dues Status", "District Dues Status", "Installation Status", "Installation Date"];
     let csv = "\ufeff" + headers.map(h => `"${h}"`).join(",") + "\n";
     currentInstallationReportRows.forEach((r, i) => {
       const dgText = r.dgVisitStatus === "Visited" ? `Visited${r.dgVisitDate ? " (" + r.dgVisitDate + ")" : ""}` : "Not Visited";
@@ -1619,14 +1643,12 @@ async function downloadInstallationReportExcel() {
       ["DG Visited Clubs", s.dgVisited],
       ["DG Not Visited Clubs", s.dgNotVisited],
       ["International Paid", s.intlPaid],
-      ["International Pending", s.intlPending],
       ["International Unpaid", s.intlUnpaid],
       ["International Total Payable", Math.round(s.intlTotalPayable)],
       ["International Collection", Math.round(s.intlCollection)],
       ["International Outstanding", Math.round(s.intlOutstanding)],
       ["International Credit / Adjustment", Math.round(s.intlCreditAdjustment)],
       ["District Paid", s.districtPaid],
-      ["District Pending", s.districtPending],
       ["District Unpaid", s.districtUnpaid],
       ["District Total Payable", Math.round(s.districtTotalPayable)],
       ["District Collection", Math.round(s.districtCollection)],
@@ -1691,7 +1713,7 @@ async function downloadInstallationReportPDF() {
 
     doc.autoTable({
       startY: 124,
-      head: [["S.N.", "Club Name (Club No.)", "DG Club Visit", "Intl Paid Status", "District Paid Status", "Installation Status", "Installation Date"]],
+      head: [["S.N.", "Club Name (Club No.)", "DG Club Visit", "Intl Dues Status", "District Dues Status", "Installation Status", "Installation Date"]],
       body,
       styles: { fontSize: 7.8, cellPadding: 4, overflow: "linebreak", valign: "middle" },
       headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255], halign: "center" },
@@ -1704,6 +1726,20 @@ async function downloadInstallationReportPDF() {
         4: { cellWidth: 98, halign: "center" },
         5: { cellWidth: 140, halign: "center" },
         6: { cellWidth: 92, halign: "center" }
+      },
+      didParseCell: function(data) {
+        if (data.section === "body" && (data.column.index === 3 || data.column.index === 4)) {
+          const value = String(data.cell.raw || "").trim();
+          if (value === "Paid") {
+            data.cell.styles.textColor = [20, 132, 71];
+            data.cell.styles.fillColor = [223, 246, 232];
+            data.cell.styles.fontStyle = "bold";
+          } else {
+            data.cell.styles.textColor = [192, 57, 43];
+            data.cell.styles.fillColor = [253, 229, 227];
+            data.cell.styles.fontStyle = "bold";
+          }
+        }
       },
       didDrawPage: function() {
         doc.setFontSize(7.5); doc.setTextColor(120);
@@ -1723,8 +1759,8 @@ async function downloadInstallationReportPDF() {
 
     const summaryBody = [
       ["Total Clubs", s.totalClubs, "DG Visited", s.dgVisited, "DG Not Visited", s.dgNotVisited],
-      ["International Paid", s.intlPaid, "International Pending", s.intlPending, "International Unpaid", s.intlUnpaid],
-      ["District Paid", s.districtPaid, "District Pending", s.districtPending, "District Unpaid", s.districtUnpaid],
+      ["International Paid", s.intlPaid, "International Unpaid", s.intlUnpaid, "", ""],
+      ["District Paid", s.districtPaid, "District Unpaid", s.districtUnpaid, "", ""],
       ["Installation Completed", s.installationCompleted, "Installation Not Completed", s.installationNotCompleted, "", ""],
       ["Intl Total Payable", formatMoney(s.intlTotalPayable), "Intl Collection", formatMoney(s.intlCollection), "Intl Outstanding", formatMoney(s.intlOutstanding)],
       ["Intl Credit / Adjustment", formatMoney(s.intlCreditAdjustment), "District Total Payable", formatMoney(s.districtTotalPayable), "District Collection", formatMoney(s.districtCollection)],
@@ -1787,7 +1823,7 @@ function buildFilteredReportRows() {
     if (!isDateWithinRange(club["Payment Date"], fromDate, toDate)) return;
 
     if (duesType === "International" || duesType === "Both") {
-      const st = getStatusValue(club["Payment Status"]);
+      const st = normalizeReportPaymentStatus(club["Payment Status"]);
       const intlUsd = numberValue(club["International Due Amount"]);
       const rate = numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]);
       if (intlUsd < 0 && (statusFilter === "All" || statusFilter === "Paid")) {
@@ -1798,7 +1834,7 @@ function buildFilteredReportRows() {
     }
 
     if (duesType === "District" || duesType === "Both") {
-      const st = getStatusValue(club["District Payment Status"]);
+      const st = normalizeReportPaymentStatus(club["District Payment Status"]);
       if (statusFilter === "All" || st === statusFilter) {
         rows.push({ clubName, lionId, duesType: "District", amount: numberValue(club["District Due Amount"]) + (numberValue(club["New Member"]) * 100), status: st, submittedBy: club["Submitted By"] || "", contactNumber: club["Contact Number"] || "", paymentDate: formatDisplayDate(club["Payment Date"]) });
       }
@@ -1847,7 +1883,8 @@ function renderAdminReport() {
     }
     currentReportRows.forEach((item, idx) => {
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${idx + 1}</td><td><b>${item.clubName}</b></td><td>${item.lionId}</td><td>${item.duesType}</td><td>${Number(item.amount || 0).toLocaleString()}</td><td>${item.status}</td><td>${item.submittedBy}</td><td>${item.contactNumber}</td>`;
+      const statusHtml = item.status === "Credit / Adjustment" ? item.status : reportStatusBadge(item.status);
+      tr.innerHTML = `<td>${idx + 1}</td><td><b>${item.clubName}</b></td><td>${item.lionId}</td><td>${item.duesType}</td><td>${Number(item.amount || 0).toLocaleString()}</td><td>${statusHtml}</td><td>${item.submittedBy}</td><td>${item.contactNumber}</td>`;
       tbody.appendChild(tr);
     });
     renderScreenReportTotal(currentReportRows);
@@ -1924,7 +1961,34 @@ async function downloadCurrentReportPDF() {
     doc.text(`Dues Type: ${duesType}`, 40, 108); doc.text(`Status: ${statusFilter}`, 180, 108); doc.text(`Total Records: ${currentReportRows.length}`, 300, 108); doc.text(`Generated Date: ${new Date().toLocaleString()}`, 430, 108);
     if (typeof doc.autoTable !== "function") { alert("PDF table plugin load हुन सकेन। Internet connection सहित फेरि try गर्नुहोस्।"); return; }
     const body = currentReportRows.map((r, i) => [i + 1, r.clubName, r.lionId, r.duesType, Math.round(Number(r.amount || 0)).toLocaleString(), r.status, r.submittedBy, r.contactNumber, r.paymentDate]);
-    doc.autoTable({ startY: 125, head: [["S.N.", "Club Name", "Lion ID", "Dues Type", "Amount", "Status", "Submitted By", "Contact", "Payment Date"]], body, styles: { fontSize: 8, cellPadding: 4 }, headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] }, alternateRowStyles: { fillColor: [248, 249, 250] }, columnStyles: { 0: { cellWidth: 35, halign: "center" }, 1: { cellWidth: 150 }, 2: { cellWidth: 65 }, 3: { cellWidth: 75 }, 4: { cellWidth: 70, halign: "right" }, 5: { cellWidth: 80 } }, didDrawPage: function() { const pageHeight = doc.internal.pageSize.getHeight(); doc.setFontSize(8); doc.setTextColor(120); doc.text("Designed by: Nirajan Aryal | Mobile: 9851113811", pageWidth / 2, pageHeight - 18, { align: "center" }); } });
+    doc.autoTable({
+      startY: 125,
+      head: [["S.N.", "Club Name", "Lion ID", "Dues Type", "Amount", "Status", "Submitted By", "Contact", "Payment Date"]],
+      body,
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] },
+      alternateRowStyles: { fillColor: [248, 249, 250] },
+      columnStyles: { 0: { cellWidth: 35, halign: "center" }, 1: { cellWidth: 150 }, 2: { cellWidth: 65 }, 3: { cellWidth: 75 }, 4: { cellWidth: 70, halign: "right" }, 5: { cellWidth: 80 } },
+      didParseCell: function(data) {
+        if (data.section === "body" && data.column.index === 5) {
+          const value = String(data.cell.raw || "").trim();
+          if (value === "Paid") {
+            data.cell.styles.textColor = [20, 132, 71];
+            data.cell.styles.fillColor = [223, 246, 232];
+            data.cell.styles.fontStyle = "bold";
+          } else if (value === "Unpaid") {
+            data.cell.styles.textColor = [192, 57, 43];
+            data.cell.styles.fillColor = [253, 229, 227];
+            data.cell.styles.fontStyle = "bold";
+          }
+        }
+      },
+      didDrawPage: function() {
+        const pageHeight = doc.internal.pageSize.getHeight();
+        doc.setFontSize(8); doc.setTextColor(120);
+        doc.text("Designed by: Nirajan Aryal | Mobile: 9851113811", pageWidth / 2, pageHeight - 18, { align: "center" });
+      }
+    });
     const totals = getReportTotals(currentReportRows);
     let y = (doc.lastAutoTable && doc.lastAutoTable.finalY ? doc.lastAutoTable.finalY : 125) + 16;
     if (y > doc.internal.pageSize.getHeight() - 90) { doc.addPage(); y = 40; }
@@ -2298,8 +2362,8 @@ function openWhatsAppReliable(waUrl, reservedWindow) {
     const max=Math.max(...vals,1); vals.forEach((v,i)=>{setText('udBarVal'+(i+1),money(v));setBar('udBar'+(i+1),v,max);}); setText('udBarLabel4',labels4);
     recentDues();recentInstall();
   };
-  function tick(){const e=document.getElementById('udDateTime');if(e)e.innerText='📅 '+new Date().toLocaleString();udRefreshDashboard();}
-  document.addEventListener('DOMContentLoaded',function(){if(typeof handleDGVisitReportStatusChange==='function')handleDGVisitReportStatusChange();tick();setInterval(tick,2500);});
+  function tick(){const e=document.getElementById('udDateTime');if(e)e.innerText='📅 '+new Date().toLocaleString();}
+  document.addEventListener('DOMContentLoaded',function(){if(typeof handleDGVisitReportStatusChange==='function')handleDGVisitReportStatusChange();tick();udRefreshDashboard();setInterval(tick,1000);});
 })();
 </script>
 
