@@ -484,6 +484,8 @@ body:has(#loginBox:not([style*="display: none"])) .admin-page-container{
 
       <div class="ud-kpis">
         <div class="ud-kpi ud-blue"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">👥</div><div><div class="ud-kpi-label">Total Clubs</div><div class="ud-kpi-num" id="udTotalClubs">0</div></div></div><div class="ud-kpi-sub">Active Clubs</div></div><div class="ud-kpi-btn" onclick="udScrollTo('editClubPanel')">View Clubs →</div></div>
+        <div class="ud-kpi ud-cyan"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">🚗</div><div><div class="ud-kpi-label">DG Clubs Visited</div><div class="ud-kpi-num" id="udDGVisited">0</div></div></div><div class="ud-kpi-sub" id="udDGVisitedPct">0% of clubs</div></div><div class="ud-kpi-btn" onclick="udOpenDGVisit('Visited')">View Details →</div></div>
+        <div class="ud-kpi ud-orange"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">📍</div><div><div class="ud-kpi-label">DG Not Visited</div><div class="ud-kpi-num" id="udDGNotVisited">0</div></div></div><div class="ud-kpi-sub" id="udDGNotVisitedPct">0% of clubs</div></div><div class="ud-kpi-btn" onclick="udOpenDGVisit('Not Visited')">View Details →</div></div>
         <div class="ud-kpi ud-green"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">✅</div><div><div class="ud-kpi-label">International Paid</div><div class="ud-kpi-num" id="udIntlPaid">0</div></div></div><div class="ud-kpi-sub" id="udIntlPaidPct">0% of clubs</div></div><div class="ud-kpi-btn" onclick="udOpenDues('International','Paid')">View Details →</div></div>
         <div class="ud-kpi ud-red"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">❌</div><div><div class="ud-kpi-label">International Unpaid</div><div class="ud-kpi-num" id="udIntlUnpaid">0</div></div></div><div class="ud-kpi-sub" id="udIntlUnpaidPct">0% of clubs</div></div><div class="ud-kpi-btn" onclick="udOpenDues('International','Unpaid')">View Details →</div></div>
         <div class="ud-kpi ud-cyan"><div><div class="ud-kpi-top"><div class="ud-kpi-icon">🪙</div><div><div class="ud-kpi-label">District Dues Paid</div><div class="ud-kpi-num" id="udDistrictPaid">0</div></div></div><div class="ud-kpi-sub" id="udDistrictPaidPct">0% of clubs</div></div><div class="ud-kpi-btn" onclick="udOpenDues('District','Paid')">View Details →</div></div>
@@ -730,8 +732,18 @@ body:has(#loginBox:not([style*="display: none"])) .admin-page-container{
             <option value="All">All</option>
           </select>
         </div>
+        <div>
+          <label><b>DG Club Visit:</b></label>
+          <select id="dgVisitReportStatus" onchange="handleDGVisitReportStatusChange()">
+            <option value="All">All</option>
+            <option value="Visited">Visited</option>
+            <option value="Not Visited">Not Visited</option>
+          </select>
+        </div>
         <div><label><b>From Date:</b></label><input type="date" id="installationReportFromDate"></div>
         <div><label><b>To Date:</b></label><input type="date" id="installationReportToDate"></div>
+        <div><label><b>DG Visit From:</b></label><input type="date" id="dgVisitReportFromDate" disabled></div>
+        <div><label><b>DG Visit To:</b></label><input type="date" id="dgVisitReportToDate" disabled></div>
         <div><button class="primary-btn" id="viewInstallationReportBtn" onclick="renderInstallationReport()">View Report</button></div>
         <div><button class="download-report-btn excel" id="installationExcelBtn" onclick="downloadInstallationReportExcel()">⬇ Excel</button></div>
         <div><button class="download-report-btn pdf" id="installationPdfBtn" onclick="downloadInstallationReportPDF()">⬇ PDF</button></div>
@@ -1449,6 +1461,9 @@ function buildInstallationReportRows() {
   const statusFilter = document.getElementById("installationReportStatus") ? document.getElementById("installationReportStatus").value : "All";
   const fromDate = document.getElementById("installationReportFromDate") ? document.getElementById("installationReportFromDate").value : "";
   const toDate = document.getElementById("installationReportToDate") ? document.getElementById("installationReportToDate").value : "";
+  const dgVisitFilter = document.getElementById("dgVisitReportStatus") ? document.getElementById("dgVisitReportStatus").value : "All";
+  const dgVisitFromDate = document.getElementById("dgVisitReportFromDate") ? document.getElementById("dgVisitReportFromDate").value : "";
+  const dgVisitToDate = document.getElementById("dgVisitReportToDate") ? document.getElementById("dgVisitReportToDate").value : "";
   const rows = [];
 
   globalClubs.forEach(club => {
@@ -1469,6 +1484,10 @@ function buildInstallationReportRows() {
 
     const dgVisitStatus = String(install.dgVisitStatus || "").trim() === "Visited" ? "Visited" : "Not Visited";
     const dgVisitDate = dgVisitStatus === "Visited" ? dateValueToKey(install.dgVisitDate || "") : "";
+
+    if (dgVisitFilter !== "All" && dgVisitStatus !== dgVisitFilter) return;
+    if (dgVisitFilter === "Visited" && !isDateWithinRange(dgVisitDate, dgVisitFromDate, dgVisitToDate)) return;
+
     const intlStatus = normalizeReportPaymentStatus(club["Payment Status"]);
     const districtStatus = normalizeReportPaymentStatus(club["District Payment Status"]);
     const rate = numberValue(club["__effectiveIntlRate"] || club["__exchangeRate"]);
@@ -1528,6 +1547,16 @@ function handleInstallationReportStatusChange() {
   if (toEl) { toEl.disabled = disableDates; if (disableDates) toEl.value = ""; }
 }
 
+function handleDGVisitReportStatusChange() {
+  const status = document.getElementById("dgVisitReportStatus")?.value || "All";
+  const fromEl = document.getElementById("dgVisitReportFromDate");
+  const toEl = document.getElementById("dgVisitReportToDate");
+  // DG Visit date range is meaningful only when Visited is selected.
+  const disableDates = status !== "Visited";
+  if (fromEl) { fromEl.disabled = disableDates; if (disableDates) fromEl.value = ""; }
+  if (toEl) { toEl.disabled = disableDates; if (disableDates) toEl.value = ""; }
+}
+
 async function renderInstallationReport() {
   const btn = document.getElementById("viewInstallationReportBtn");
   if (btn) { btn.disabled = true; btn.innerText = "⏳ Loading..."; }
@@ -1556,7 +1585,8 @@ async function renderInstallationReport() {
 
 function getInstallationReportFileBaseName() {
   const status = document.getElementById("installationReportStatus")?.value || "All";
-  return `Club_Installation_Report_${status.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}`;
+  const dgStatus = document.getElementById("dgVisitReportStatus")?.value || "All";
+  return `Club_Installation_Report_${status.replace(/\s+/g, "_")}_DG_${dgStatus.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}`;
 }
 
 async function ensureInstallationReportRowsReady() {
@@ -2245,6 +2275,7 @@ function openWhatsAppReliable(waUrl, reservedWindow) {
   window.udOpenAddClub=function(){ udScrollTo('addNewClubPanel'); const box=document.getElementById('addClubFormBox'); if(box&&box.style.display!=='block'&&typeof toggleAddClubForm==='function') toggleAddClubForm(); };
   window.udOpenDues=function(type,status){ const t=document.getElementById('reportDuesType'), s=document.getElementById('reportStatus'); if(t)t.value=type;if(s)s.value=status;if(typeof renderAdminReport==='function')renderAdminReport();udScrollTo('adminReportPanel'); };
   window.udOpenInstall=function(status){ const s=document.getElementById('installationReportStatus');if(s)s.value=status;if(typeof handleInstallationReportStatusChange==='function')handleInstallationReportStatusChange();if(typeof renderInstallationReport==='function')renderInstallationReport();udScrollTo('installationReportPanel'); };
+  window.udOpenDGVisit=function(status){ const s=document.getElementById('dgVisitReportStatus');if(s)s.value=status;if(typeof handleDGVisitReportStatusChange==='function')handleDGVisitReportStatusChange();if(typeof renderInstallationReport==='function')renderInstallationReport();udScrollTo('installationReportPanel'); };
   window.udOpenSearchClub=function(){ const q=(document.getElementById('udGlobalSearch')?.value||'').trim().toLowerCase();if(!q)return; const club=(globalClubs||[]).find(c=>String(c['Club Name']||'').toLowerCase().includes(q)||String(c['Lion ID']||'').toLowerCase()===q);if(!club){alert('Club फेला परेन।');return;} const sel=document.getElementById('adminClubSelect');if(sel){sel.value=String(club['Lion ID']||'');if(typeof loadClubToAdminForm==='function')loadClubToAdminForm();udScrollTo('editClubPanel');}};
 
   function setText(id,v){const e=document.getElementById(id);if(e)e.innerText=v;}
@@ -2255,10 +2286,11 @@ function openWhatsAppReliable(waUrl, reservedWindow) {
   window.udRefreshDashboard=function(){
     if(typeof globalClubs==='undefined') return;
     const clubs=globalClubs||[], total=clubs.length;
-    let ip=0,iu=0,dp=0,du=0,ic=0;
-    clubs.forEach(c=>{const a=String(c['Payment Status']||'').trim()||'Unpaid';const d=String(c['District Payment Status']||'').trim()||'Unpaid';if(a==='Paid')ip++;else if(a!=='Pending Verification'&&numFromText(c['International Due Amount'])>=0)iu++;if(d==='Paid')dp++;else if(d!=='Pending Verification')du++;const x=(installationAdminMap||{})[String(c['Lion ID']||'')]||{};if(x.status==='Installation Completed')ic++;});
-    setText('udTotalClubs',total);setText('udIntlPaid',ip);setText('udIntlUnpaid',iu);setText('udDistrictPaid',dp);setText('udDistrictUnpaid',du);setText('udInstallCompleted',ic);setText('udInstallPending',Math.max(0,total-ic));
-    setText('udIntlPaidPct',pct(ip,total));setText('udIntlUnpaidPct',pct(iu,total));setText('udDistrictPaidPct',pct(dp,total));setText('udDistrictUnpaidPct',pct(du,total));setText('udInstallCompletedPct',pct(ic,total));setText('udInstallPendingPct',pct(Math.max(0,total-ic),total));
+    let ip=0,iu=0,dp=0,du=0,ic=0,dgv=0;
+    clubs.forEach(c=>{const a=String(c['Payment Status']||'').trim()||'Unpaid';const d=String(c['District Payment Status']||'').trim()||'Unpaid';if(a==='Paid')ip++;else if(a!=='Pending Verification'&&numFromText(c['International Due Amount'])>=0)iu++;if(d==='Paid')dp++;else if(d!=='Pending Verification')du++;const x=(installationAdminMap||{})[String(c['Lion ID']||'')]||{};if(x.status==='Installation Completed')ic++;if(String(x.dgVisitStatus||'').trim()==='Visited')dgv++;});
+    const dgnv=Math.max(0,total-dgv);
+    setText('udTotalClubs',total);setText('udDGVisited',dgv);setText('udDGNotVisited',dgnv);setText('udIntlPaid',ip);setText('udIntlUnpaid',iu);setText('udDistrictPaid',dp);setText('udDistrictUnpaid',du);setText('udInstallCompleted',ic);setText('udInstallPending',Math.max(0,total-ic));
+    setText('udDGVisitedPct',pct(dgv,total));setText('udDGNotVisitedPct',pct(dgnv,total));setText('udIntlPaidPct',pct(ip,total));setText('udIntlUnpaidPct',pct(iu,total));setText('udDistrictPaidPct',pct(dp,total));setText('udDistrictUnpaidPct',pct(du,total));setText('udInstallCompletedPct',pct(ic,total));setText('udInstallPendingPct',pct(Math.max(0,total-ic),total));
     const admin=localStorage.getItem('duesAdminUser')||'Admin User';setText('udAdminName',admin);setText('udWelcomeName',admin);
     const mode=document.getElementById('udChartMode')?.value||'intl'; let vals,labels4='Credit / Adjustment';
     if(mode==='district'){vals=[numFromText(txt('sumDistrictTotalPayable')),numFromText(txt('sumDistrictTotalCollection')),numFromText(txt('sumDistrictTotalOutstanding')),numFromText(txt('sumNewMemberCollection'))];labels4='New Member Collection';}
@@ -2267,7 +2299,7 @@ function openWhatsAppReliable(waUrl, reservedWindow) {
     recentDues();recentInstall();
   };
   function tick(){const e=document.getElementById('udDateTime');if(e)e.innerText='📅 '+new Date().toLocaleString();udRefreshDashboard();}
-  document.addEventListener('DOMContentLoaded',function(){tick();setInterval(tick,2500);});
+  document.addEventListener('DOMContentLoaded',function(){if(typeof handleDGVisitReportStatusChange==='function')handleDGVisitReportStatusChange();tick();setInterval(tick,2500);});
 })();
 </script>
 
