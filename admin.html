@@ -243,8 +243,8 @@ tr:hover { background:#edf2f7; cursor:pointer; }
   text-align:center;
   line-height:1.15;
 }
-.report-status-paid { background:#dff6e8; color:#148447; border:1px solid #a9dfbf; }
-.report-status-unpaid { background:#fde5e3; color:#c0392b; border:1px solid #f5b7b1; }
+.report-status-paid { background:transparent; color:#148447; border:none; }
+.report-status-unpaid { background:transparent; color:#c0392b; border:none; }
 
 </style>
 <style>
@@ -1032,7 +1032,7 @@ function numberValue(v) {
 }
 
 function formatMoney(n) {
-  return "रु. " + Math.round(n || 0).toLocaleString();
+  return "NPR " + Math.round(n || 0).toLocaleString();
 }
 
 
@@ -1549,14 +1549,14 @@ function renderInstallationReportSummary(rows) {
   box.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:8px;text-align:left;">
       <div><b>Total Clubs:</b> ${s.totalClubs}</div>
-      <div><b>DG Visited:</b> ${s.dgVisited}</div>
-      <div><b>DG Not Visited:</b> ${s.dgNotVisited}</div>
-      <div><b>Intl Paid:</b> ${s.intlPaid}</div>
-      <div><b>Intl Unpaid:</b> ${s.intlUnpaid}</div>
-      <div><b>District Paid:</b> ${s.districtPaid}</div>
-      <div><b>District Unpaid:</b> ${s.districtUnpaid}</div>
-      <div><b>Installation Completed:</b> ${s.installationCompleted}</div>
-      <div><b>Installation Not Completed:</b> ${s.installationNotCompleted}</div>
+      <div><b>DG Club Visited:</b> ${s.dgVisited}</div>
+      <div><b>DG Club Not Visited:</b> ${s.dgNotVisited}</div>
+      <div><b>International Dues Paid:</b> ${s.intlPaid}</div>
+      <div><b>International Dues Unpaid:</b> ${s.intlUnpaid}</div>
+      <div><b>District Dues Paid:</b> ${s.districtPaid}</div>
+      <div><b>District Dues Unpaid:</b> ${s.districtUnpaid}</div>
+      <div><b>Club Installation Completed:</b> ${s.installationCompleted}</div>
+      <div><b>Club Installation Not Completed:</b> ${s.installationNotCompleted}</div>
     </div>`;
   box.style.display = "block";
 }
@@ -1640,21 +1640,21 @@ async function downloadInstallationReportExcel() {
     csv += "\n\"SUMMARY\"\n";
     const summaryRows = [
       ["Total Clubs", s.totalClubs],
-      ["DG Visited Clubs", s.dgVisited],
-      ["DG Not Visited Clubs", s.dgNotVisited],
-      ["International Paid", s.intlPaid],
-      ["International Unpaid", s.intlUnpaid],
+      ["DG Club Visited", s.dgVisited],
+      ["DG Club Not Visited", s.dgNotVisited],
+      ["International Dues Paid", s.intlPaid],
+      ["International Dues Unpaid", s.intlUnpaid],
       ["International Total Payable", Math.round(s.intlTotalPayable)],
       ["International Collection", Math.round(s.intlCollection)],
       ["International Outstanding", Math.round(s.intlOutstanding)],
       ["International Credit / Adjustment", Math.round(s.intlCreditAdjustment)],
-      ["District Paid", s.districtPaid],
-      ["District Unpaid", s.districtUnpaid],
+      ["District Dues Paid", s.districtPaid],
+      ["District Dues Unpaid", s.districtUnpaid],
       ["District Total Payable", Math.round(s.districtTotalPayable)],
       ["District Collection", Math.round(s.districtCollection)],
       ["District Outstanding", Math.round(s.districtOutstanding)],
-      ["Installation Completed", s.installationCompleted],
-      ["Installation Not Completed", s.installationNotCompleted]
+      ["Club Installation Completed", s.installationCompleted],
+      ["Club Installation Not Completed", s.installationNotCompleted]
     ];
     summaryRows.forEach(r => {
       csv += r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",") + "\n";
@@ -1732,11 +1732,9 @@ async function downloadInstallationReportPDF() {
           const value = String(data.cell.raw || "").trim();
           if (value === "Paid") {
             data.cell.styles.textColor = [20, 132, 71];
-            data.cell.styles.fillColor = [223, 246, 232];
             data.cell.styles.fontStyle = "bold";
           } else {
             data.cell.styles.textColor = [192, 57, 43];
-            data.cell.styles.fillColor = [253, 229, 227];
             data.cell.styles.fontStyle = "bold";
           }
         }
@@ -1758,12 +1756,12 @@ async function downloadInstallationReportPDF() {
     y += 8;
 
     const summaryBody = [
-      ["Total Clubs", s.totalClubs, "DG Visited", s.dgVisited, "DG Not Visited", s.dgNotVisited],
-      ["International Paid", s.intlPaid, "International Unpaid", s.intlUnpaid, "", ""],
-      ["District Paid", s.districtPaid, "District Unpaid", s.districtUnpaid, "", ""],
-      ["Installation Completed", s.installationCompleted, "Installation Not Completed", s.installationNotCompleted, "", ""],
-      ["Intl Total Payable", formatMoney(s.intlTotalPayable), "Intl Collection", formatMoney(s.intlCollection), "Intl Outstanding", formatMoney(s.intlOutstanding)],
-      ["Intl Credit / Adjustment", formatMoney(s.intlCreditAdjustment), "District Total Payable", formatMoney(s.districtTotalPayable), "District Collection", formatMoney(s.districtCollection)],
+      ["Total Clubs", s.totalClubs, "DG Club Visited", s.dgVisited, "DG Club Not Visited", s.dgNotVisited],
+      ["International Dues Paid", s.intlPaid, "International Dues Unpaid", s.intlUnpaid, "", ""],
+      ["District Dues Paid", s.districtPaid, "District Dues Unpaid", s.districtUnpaid, "", ""],
+      ["Club Installation Completed", s.installationCompleted, "Club Installation Not Completed", s.installationNotCompleted, "", ""],
+      ["International Total Payable", formatMoney(s.intlTotalPayable), "International Collection", formatMoney(s.intlCollection), "International Outstanding", formatMoney(s.intlOutstanding)],
+      ["International Credit / Adjustment", formatMoney(s.intlCreditAdjustment), "District Total Payable", formatMoney(s.districtTotalPayable), "District Collection", formatMoney(s.districtCollection)],
       ["District Outstanding", formatMoney(s.districtOutstanding), "", "", "", ""]
     ];
 
@@ -1974,11 +1972,9 @@ async function downloadCurrentReportPDF() {
           const value = String(data.cell.raw || "").trim();
           if (value === "Paid") {
             data.cell.styles.textColor = [20, 132, 71];
-            data.cell.styles.fillColor = [223, 246, 232];
             data.cell.styles.fontStyle = "bold";
           } else if (value === "Unpaid") {
             data.cell.styles.textColor = [192, 57, 43];
-            data.cell.styles.fillColor = [253, 229, 227];
             data.cell.styles.fontStyle = "bold";
           }
         }
@@ -2368,4 +2364,4 @@ function openWhatsAppReliable(waUrl, reservedWindow) {
 </script>
 
 </body>
-</html>
+  </html>
